@@ -3,7 +3,7 @@
 
 namespace rkr {
 
-EventCore::EventCore(PluginLoader& ploader) {
+EventCore::EventCore(PluginLoader& ploader) : PluginBase("rkr::EventCore *") {
   ploader.provide_class("event", this);
 }
 

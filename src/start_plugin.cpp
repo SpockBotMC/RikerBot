@@ -2,7 +2,8 @@
 
 namespace rkr {
 
-StartPlugin::StartPlugin(PluginLoader& ploader) {
+StartPlugin::StartPlugin(PluginLoader& ploader) :
+    PluginBase("rkr::StartPlugin *") {
   ev = static_cast<EventCore*>(ploader.get_class("event"));
   io = static_cast<IOCore*>(ploader.get_class("io"));
 

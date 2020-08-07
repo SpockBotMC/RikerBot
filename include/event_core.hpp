@@ -11,11 +11,12 @@
 #include <string>
 #include <vector>
 
+#include "plugin_base.hpp"
 #include "plugin_loader.hpp"
 
 namespace rkr {
 
-class EventCore {
+class EventCore : public PluginBase {
 public:
   typedef std::uint64_t ev_id_type;
   typedef std::uint64_t cb_id_type;

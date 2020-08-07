@@ -33,6 +33,7 @@ Build Requiremenets
 
 * cmake
 * C++20 compiler, likely only GCC 10.1+ works right now
+* Boost >= 1.72
 * SWIG 4.0
 * Python3
 * The latest git of `python-minecraft-data <https://github.com/SpockBotMC/python-minecraft-data>`_

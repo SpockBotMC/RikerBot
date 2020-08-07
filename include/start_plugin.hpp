@@ -2,12 +2,13 @@
 #define START_PLUGIN_HPP
 
 #include "plugin_loader.hpp"
+#include "plugin_base.hpp"
 #include "event_core.hpp"
 #include "io_core.hpp"
 
 namespace rkr {
 
-class StartPlugin {
+class StartPlugin : public PluginBase {
 public:
   StartPlugin(rkr::PluginLoader& ploader);
 

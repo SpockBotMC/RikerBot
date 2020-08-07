@@ -7,9 +7,9 @@
 
 namespace rkr {
 
-IOCore::IOCore(PluginLoader& ploader) : state(mcd::HANDSHAKING),
-    compression(COMPRESSION_DISABLED), kill(0), sock(ctx), rslv(ctx),
-    in_is(&in_buf) {
+IOCore::IOCore(PluginLoader& ploader) : PluginBase("rkr::IOCore *"),
+    state(mcd::HANDSHAKING), compression(COMPRESSION_DISABLED), kill(0),
+    sock(ctx), rslv(ctx), in_is(&in_buf) {
   ploader.provide_class("io", this);
   ev = static_cast<EventCore*>(ploader.get_class("event"));
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);

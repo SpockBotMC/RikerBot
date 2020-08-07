@@ -85,7 +85,9 @@ swig_add_library(EventCore
   LANGUAGE python
   OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riker
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/EventCore.i src/event_core.cpp src/plugin_loader.cpp)
+  SOURCES swig/EventCore.i src/event_core.cpp src/plugin_loader.cpp
+      src/plugin_base.cpp
+)
 set_target_properties(EventCore PROPERTIES PREFIX _ OUTPUT_NAME EventCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/riker)
@@ -101,7 +103,7 @@ swig_add_library(IOCore
   OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riker
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES swig/IOCore.i src/io_core.cpp src/plugin_loader.cpp
-      src/event_core.cpp src/datautils.cpp ${PROTO_IMPL}
+      src/plugin_base.cpp src/event_core.cpp src/datautils.cpp ${PROTO_IMPL}
 )
 set_target_properties(IOCore PROPERTIES PREFIX _ OUTPUT_NAME IOCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3

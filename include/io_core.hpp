@@ -17,6 +17,7 @@ namespace ip = net::ip;
 #include <string>
 #include <cstdint>
 #include "plugin_loader.hpp"
+#include "plugin_base.hpp"
 #include "event_core.hpp"
 #include "minecraft_protocol.hpp"
 
@@ -33,7 +34,7 @@ struct ConnectData {
   std::uint16_t port;
 };
 
-class IOCore {
+class IOCore : public PluginBase {
 public:
   mcd::packet_state state;
   compression_state compression;
