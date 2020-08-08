@@ -11,10 +11,10 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
     PluginBase("rkr::IOCore *"), state(mcd::HANDSHAKING),
     compression(COMPRESSION_DISABLED), kill(0), sock(ctx), rslv(ctx),
     in_is(&in_buf) {
-  ploader.provide("io", this, ownership);
-  ev = static_cast<EventCore*>(ploader.require("event"));
+  ploader.provide("IO", this, ownership);
+  ev = static_cast<EventCore*>(ploader.require("Event"));
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
-  connect_event = ev->register_event("net_connect");
+  connect_event = ev->register_event("io_connect");
   kill_event = ev->register_event("kill");
   ev->register_callback("ClientboundEncryptionBegin",
       [&](EventCore::ev_id_type ev_id, const void* data) {

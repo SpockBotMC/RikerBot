@@ -5,7 +5,7 @@ namespace rkr {
 
 EventCore::EventCore(PluginLoader& ploader, bool ownership) :
     PluginBase("rkr::EventCore *") {
-  ploader.provide("event", this, ownership);
+  ploader.provide("Event", this, ownership);
 }
 
 EventCore::ev_id_type EventCore::register_event(std::string event_name) {

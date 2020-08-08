@@ -1,4 +1,5 @@
 # Copied wholesale from SpockBot, thanks Gjum
+import copy
 
 def get_settings(defaults, settings):
   return dict(copy.deepcopy(defaults), **settings)
@@ -26,15 +27,17 @@ class PluginBase:
 
     # Load all the plugin's dependencies.
     if isinstance(self.requires, str):
-      setattr(self, self.requires.lower(), ploader.requires(self.requires))
+      setattr(self, self.requires.lower(), ploader.require(self.requires))
     else:
       for requirement in self.requires:
-        setattr(self, requirement.lower(), ploader.requires(requirement))
+        setattr(self, requirement.lower(), ploader.require(requirement))
 
     # Setup the plugin's event handlers.
+    if self.events:
+      ev = ploader.require('Event')
     for event in self.events.keys():
       if hasattr(self, self.events[event]):
-        ploader.reg_event_handler(event, getattr(self, self.events[event]))
+        ev.register_callback(event, getattr(self, self.events[event]))
       else:
         raise AttributeError(f"{self.__class__.__name__} object has no "
             f"attribute '{self.events[event]}'")
