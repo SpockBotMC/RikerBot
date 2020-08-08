@@ -52,7 +52,7 @@ private:
   ip::tcp::resolver rslv;
   boost::asio::streambuf out_buf;
   boost::asio::streambuf in_buf;
-  boost::asio::streambuf pak_buf;
+  std::ostream out_os;
   std::istream in_is;
   EventCore::ev_id_type connect_event;
   EventCore::ev_id_type kill_event;

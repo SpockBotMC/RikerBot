@@ -15,7 +15,7 @@ namespace rkr {
 IOCore::IOCore(PluginLoader& ploader, bool ownership) :
     PluginBase("rkr::IOCore *"), state(mcd::HANDSHAKING), kill(0),
     compressed(false), encrypted(false), sock(ctx), rslv(ctx),
-    in_is(&in_buf) {
+    out_os(&out_buf), in_is(&in_buf) {
 
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
 
@@ -70,8 +70,8 @@ void IOCore::run() {
 }
 
 void IOCore::encode_packet(const mcd::Packet& packet) {
+  static boost::asio::streambuf pak_buf;
   static std::ostream pak_os(&pak_buf);
-  static std::ostream out_os(&out_buf);
 
   static boost::asio::streambuf header_buf;
   static std::ostream header_os(&header_buf);
@@ -182,26 +182,34 @@ void IOCore::read_packet_handler(const sys::error_code& ec, std::size_t len) {
   if(encrypted)
     decryptor->process(static_cast<std::uint8_t*>(read_buf.data()), len);
   in_buf.commit(len);
-  if(!compressed) {
-    std::int64_t packet_id;
-    try {packet_id = mcd::dec_varint(in_is);}
-    catch(std::exception&) {
-      BOOST_LOG_TRIVIAL(fatal) << "Failed to decode packet id";
-      exit(-1);
+  int32_t packet_id;
+  try {
+    if(compressed) {
+      auto uncompressed_len = mcd::dec_varint(in_is);
+      if(uncompressed_len) {
+        auto remaining_buf = in_buf.size();
+        auto sec_vec = Botan::secure_vector<std::uint8_t>(remaining_buf);
+        std::memcpy(sec_vec.data(), in_buf.data().data(), remaining_buf);
+        in_buf.consume(remaining_buf);
+        decompressor->update(sec_vec);
+        auto temp_buf = in_buf.prepare(uncompressed_len);
+        std::memcpy(temp_buf.data(), sec_vec.data(), uncompressed_len);
+        in_buf.commit(uncompressed_len);
+      }
     }
-    auto packet = mcd::make_packet(state, mcd::CLIENTBOUND, packet_id);
-    try {packet->decode(in_is);}
-    catch(std::exception&) {
-      BOOST_LOG_TRIVIAL(fatal) << "Failed to decode packet, suspect id: "
-          << packet_id;
-      exit(-1);
-    }
-
-    ev->emit(packet_event_ids[state][mcd::CLIENTBOUND][packet->packet_id],
-        static_cast<const void*>(packet.get()), "mcd::" + packet->name + " *");
-  } else {
-    throw std::runtime_error("Compression Unimplemented");
+    packet_id = mcd::dec_varint(in_is);
+  } catch(std::exception&) {
+    BOOST_LOG_TRIVIAL(fatal) << "Failed to decode packet id";
   }
+  auto packet = mcd::make_packet(state, mcd::CLIENTBOUND, packet_id);
+  try{packet->decode(in_is);} catch(std::exception&) {
+    BOOST_LOG_TRIVIAL(fatal) << "Failed to decode packet, suspect id: "
+        << packet_id;
+    exit(-1);
+  }
+
+  ev->emit(packet_event_ids[state][mcd::CLIENTBOUND][packet->packet_id],
+      static_cast<const void*>(packet.get()), "mcd::" + packet->name + " *");
 }
 
 void IOCore::encryption_begin_handler(EventCore::ev_id_type ev_id,
@@ -245,6 +253,7 @@ void IOCore::enable_compression(EventCore::ev_id_type ev_id,
   compressor->start(1);
   decompressor->clear();
   decompressor->start();
+  compressed = true;
 }
 
 } // namespace rkr

@@ -16,7 +16,7 @@ Things Riker can do today:
 Feature Roadmap:
  * Authentication
  * |ss| Encryption |se|
- * Compression
+ * |ss| Compression |se|
  * Chunk Parsing
  * Physics
  * Pathfinding

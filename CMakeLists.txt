@@ -32,7 +32,7 @@ add_custom_command(
   COMMAND ${Python3_EXECUTABLE}
   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/generate.py ${MC_VERSION}
   COMMAND mv
-  ARGS MinecraftProtocol.py ${CMAKE_CURRENT_SOURCE_DIR}/riker/plugins
+  ARGS MinecraftProtocol.py ${CMAKE_CURRENT_SOURCE_DIR}/riker/proto
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating protocol files"
   VERBATIM
@@ -54,13 +54,13 @@ add_custom_target(swig_runtime DEPENDS swigpyrun.hpp)
 set_property(SOURCE ${PROTO_INTERFACE} PROPERTY CPLUSPLUS ON)
 swig_add_library(Proto
   LANGUAGE python
-  OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riker/plugins
+  OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/riker/proto
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES ${PROTO_INTERFACE} ${PROTO_IMPL} src/datautils.cpp
 )
 set_target_properties(Proto PROPERTIES OUTPUT_NAME Proto${MC_USCORE}
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/riker/plugins)
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/riker/proto)
 target_compile_features(Proto PRIVATE cxx_std_20)
 target_include_directories(Proto PRIVATE ${INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}/swig)
