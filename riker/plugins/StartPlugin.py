@@ -1,4 +1,4 @@
-from .PluginBase import PluginBase, pl_announce
+from riker.PluginBase import PluginBase, pl_announce
 
 @pl_announce('Start')
 class StartPlugin(PluginBase):

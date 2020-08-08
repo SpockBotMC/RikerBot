@@ -1,7 +1,6 @@
-from .CIOCore import COMPRESSION_DISABLED, COMPRESSION_ENABLED
-from .IOPlugin import IOPlugin
-from .EventPlugin import EventPlugin
-from .CPluginLoader import PluginLoader
-from .StartPlugin import StartPlugin
+from .plugins.IOPlugin import IOPlugin
+from .plugins.EventPlugin import EventPlugin
+from .plugins.CPluginLoader import PluginLoader
+from .plugins.StartPlugin import StartPlugin
 from .DependencySolver import solve_dependencies
-from . import MinecraftProtocol as proto
+from .plugins import MinecraftProtocol as proto

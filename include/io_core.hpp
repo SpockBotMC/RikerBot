@@ -1,6 +1,10 @@
 #ifndef IO_CORE_HPP
 #define IO_CORE_HPP
 
+#include <string>
+#include <cstdint>
+#include <memory>
+#include <botan/cipher_mode.h>
 #include <net.hpp>
 #include <boost/asio.hpp>
 
@@ -14,8 +18,6 @@ namespace sys = boost::system;
 namespace ip = net::ip;
 #endif
 
-#include <string>
-#include <cstdint>
 #include "plugin_loader.hpp"
 #include "plugin_base.hpp"
 #include "event_core.hpp"
@@ -23,11 +25,6 @@ namespace ip = net::ip;
 
 
 namespace rkr {
-
-enum compression_state {
-  COMPRESSION_DISABLED,
-  COMPRESSION_ENABLED
-};
 
 struct ConnectData {
   std::string host;
@@ -37,8 +34,8 @@ struct ConnectData {
 class IOCore : public PluginBase {
 public:
   mcd::packet_state state;
-  compression_state compression;
   int kill;
+  std::uint8_t shared_secret[16];
 
   IOCore(rkr::PluginLoader& ploader, bool ownership = false);
   void run();
@@ -48,6 +45,8 @@ public:
 
 private:
   EventCore* ev;
+  bool compressed;
+  bool encrypted;
   net::io_context ctx;
   ip::tcp::socket sock;
   ip::tcp::resolver rslv;
@@ -57,6 +56,9 @@ private:
   std::istream in_is;
   EventCore::ev_id_type connect_event;
   EventCore::ev_id_type kill_event;
+  std::unique_ptr<Botan::Cipher_Mode> encryptor;
+  std::unique_ptr<Botan::Cipher_Mode> decryptor;
+  boost::asio::mutable_buffer mut_buf;
 
   std::array<std::array<std::vector<EventCore::ev_id_type>,
       mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
@@ -67,6 +69,7 @@ private:
   void header_handler(const sys::error_code& ec, std::size_t len);
   void read_packet_handler(const sys::error_code& ec, std::size_t len);
   void encryption_begin_handler(EventCore::ev_id_type ev_id, const void* data);
+  void enable_encryption(EventCore::ev_id_type ev_id, const void* data);
 };
 
 } // namespace rkr
