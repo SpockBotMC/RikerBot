@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <botan/cipher_mode.h>
+#include <botan/compression.h>
 #include <net.hpp>
 #include <boost/asio.hpp>
 
@@ -40,8 +41,7 @@ public:
   IOCore(rkr::PluginLoader& ploader, bool ownership = false);
   void run();
   void encode_packet(const mcd::Packet& packet);
-  // Not std::string view because SWIG doesn't have a wrapper for string_view
-  void connect(std::string host, std::string service);
+  void connect(const std::string& host, const std::string& service);
 
 private:
   EventCore* ev;
@@ -58,7 +58,10 @@ private:
   EventCore::ev_id_type kill_event;
   std::unique_ptr<Botan::Cipher_Mode> encryptor;
   std::unique_ptr<Botan::Cipher_Mode> decryptor;
-  boost::asio::mutable_buffer mut_buf;
+  std::unique_ptr<Botan::Compression_Algorithm> compressor;
+  std::unique_ptr<Botan::Decompression_Algorithm> decompressor;
+  std::size_t threshold;
+  boost::asio::mutable_buffer read_buf;
 
   std::array<std::array<std::vector<EventCore::ev_id_type>,
       mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
@@ -70,6 +73,7 @@ private:
   void read_packet_handler(const sys::error_code& ec, std::size_t len);
   void encryption_begin_handler(EventCore::ev_id_type ev_id, const void* data);
   void enable_encryption(EventCore::ev_id_type ev_id, const void* data);
+  void enable_compression(EventCore::ev_id_type ev_id, const void* data);
 };
 
 } // namespace rkr

@@ -59,6 +59,10 @@ enum varnum_fail {
 
 int verify_varint(const char *buf, std::size_t max_len);
 int verify_varlong(const char *buf, std::size_t max_len);
+
+std::size_t size_varint(std::uint32_t varint);
+std::size_t size_varlong(std::uint64_t varlong);
+
 void enc_varint(std::ostream &dest, std::uint64_t src);
 std::int64_t dec_varint(std::istream &src);
 

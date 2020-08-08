@@ -145,9 +145,41 @@ int verify_varnum(const char *buf, std::size_t max_len, int type_max) {
 int verify_varint(const char *buf, std::size_t max_len) {
   return verify_varnum(buf, max_len, 5);
 }
-
 int verify_varlong(const char *buf, std::size_t max_len) {
   return verify_varnum(buf, max_len, 10);
+}
+
+std::size_t size_varint(std::uint32_t varint) {
+  if(varint < (1 << 7))
+    return 1;
+  if(varint < (1 << 14))
+    return 2;
+  if(varint < (1 << 21))
+    return 3;
+  if(varint < (1 << 28))
+    return 4;
+  return 5;
+}
+std::size_t size_varlong(std::uint64_t varlong) {
+  if(varlong < (1 << 7))
+    return 1;
+  if(varlong < (1 << 14))
+    return 2;
+  if(varlong < (1 << 21))
+    return 3;
+  if(varlong < (1 << 28))
+    return 4;
+  if(varlong < (1ULL << 35))
+    return 5;
+  if(varlong < (1ULL << 42))
+    return 6;
+  if(varlong < (1ULL << 49))
+    return 7;
+  if(varlong < (1ULL << 56))
+    return 8;
+  if(varlong < (1ULL << 63))
+    return 9;
+  return 10;
 }
 
 void enc_varint(std::ostream &dest, std::uint64_t src) {

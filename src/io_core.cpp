@@ -21,6 +21,9 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
 
   encryptor = Botan::Cipher_Mode::create("AES-128/CFB", Botan::ENCRYPTION);
   decryptor = Botan::Cipher_Mode::create("AES-128/CFB", Botan::DECRYPTION);
+  compressor = Botan::Compression_Algorithm::create("zlib");
+  decompressor = Botan::Decompression_Algorithm::create("zlib");
+
 
   ploader.provide("IO", this, ownership);
   ev = static_cast<EventCore*>(ploader.require("Event"));
@@ -35,6 +38,9 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
       [&](EventCore::ev_id_type ev_id, const void* data) {
       enable_encryption(ev_id, data);});
 
+  ev->register_callback("ClientboundCompress",
+      [&](EventCore::ev_id_type ev_id, const void* data) {
+      enable_compression(ev_id, data);});
 
   for(int state_itr = 0; state_itr < mcd::STATE_MAX; state_itr++) {
     for(int dir_itr = 0; dir_itr < mcd::DIRECTION_MAX; dir_itr++) {
@@ -56,8 +62,8 @@ void IOCore::run() {
     // 5 bytes is the maximum size of the packet length header, but it's
     // possible for an entire packet to be shorter than that. So we prepare
     // a 5 byte buffer then use read_some to read however many bytes come.
-    mut_buf = in_buf.prepare(5);
-    sock.async_read_some(mut_buf, [&](const sys::error_code& ec,
+    read_buf = in_buf.prepare(5);
+    sock.async_read_some(read_buf, [&](const sys::error_code& ec,
         std::size_t len) {header_handler(ec, len);});
   }
   ev->emit(kill_event);
@@ -67,27 +73,55 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
   static std::ostream pak_os(&pak_buf);
   static std::ostream out_os(&out_buf);
 
-  if(!compressed) {
-    mcd::enc_varint(pak_os, packet.packet_id);
-    packet.encode(pak_os);
-    size_t packet_size = pak_buf.size();
-    mcd::enc_varint(out_os, packet_size);
-    auto temp_buf = out_buf.prepare(packet_size);
-    std::memcpy(temp_buf.data(), pak_buf.data().data(), packet_size);
-    if(encrypted)
-      encryptor->process(static_cast<std::uint8_t*>(temp_buf.data()),
-          packet_size);
-    out_buf.commit(packet_size);
-    pak_buf.consume(packet_size);
+  static boost::asio::streambuf header_buf;
+  static std::ostream header_os(&header_buf);
+
+  mcd::enc_varint(pak_os, packet.packet_id);
+  packet.encode(pak_os);
+  auto packet_size = pak_buf.size();
+  std::size_t header_size = 0;
+  std::size_t write_size = 0;
+  boost::asio::mutable_buffer write_buf;
+
+  if(compressed && packet_size > threshold) {
+    auto sec_vec = Botan::secure_vector<uint8_t>(packet_size);
+    std::memcpy(sec_vec.data(), pak_buf.data().data(), packet_size);
+    compressor->update(sec_vec, 0, true);
+    auto total_size = sec_vec.size() + mcd::size_varint(packet_size);
+    mcd::enc_varint(header_os, total_size);
+    mcd::enc_varint(header_os, packet_size);
+    header_size = header_buf.size();
+    write_size = header_size + sec_vec.size();
+    write_buf = out_buf.prepare(write_size);
+    std::memcpy(write_buf.data(), header_buf.data().data(), header_size);
+    write_buf += header_size;
+    std::memcpy(write_buf.data(), sec_vec.data(), sec_vec.size());
   } else {
-    throw std::runtime_error("Compression Unimplemented");
+    if(compressed) {
+      mcd::enc_varint(header_os, packet_size + 1);
+      mcd::enc_byte(header_os, 0);
+    } else {
+      mcd::enc_varint(header_os, packet_size);
+    }
+    header_size = header_buf.size();
+    write_size = packet_size + header_size;
+    write_buf = out_buf.prepare(write_size);
+    std::memcpy(write_buf.data(), header_buf.data().data(), header_size);
+    write_buf += header_size;
+    std::memcpy(write_buf.data(), pak_buf.data().data(), packet_size);
   }
+  if(encrypted)
+    encryptor->process(static_cast<std::uint8_t*>(write_buf.data()),
+        write_size);
+  out_buf.commit(write_size);
+  header_buf.consume(header_size);
+  pak_buf.consume(packet_size);
 
   ev->emit(packet_event_ids[state][mcd::SERVERBOUND][packet.packet_id],
       static_cast<const void*>(&packet), "mcd::" + packet.name + " *");
 }
 
-void IOCore::connect(std::string host, std::string service) {
+void IOCore::connect(const std::string& host, const std::string& service) {
   auto endpoints = rslv.resolve(host, service);
   net::async_connect(sock, endpoints, [&](const sys::error_code& ec,
       const ip::tcp::endpoint& ep) {connect_handler(ec, ep);});
@@ -121,7 +155,7 @@ void IOCore::header_handler(const sys::error_code& ec, std::size_t len) {
     exit(-1);
   }
   if(encrypted)
-    decryptor->process(static_cast<std::uint8_t*>(mut_buf.data()), len);
+    decryptor->process(static_cast<std::uint8_t*>(read_buf.data()), len);
   in_buf.commit(len);
 
   int varnum = mcd::verify_varint(
@@ -134,8 +168,8 @@ void IOCore::header_handler(const sys::error_code& ec, std::size_t len) {
         {header_handler(ec, len);});
   } else {
     auto varint = mcd::dec_varint(in_is);
-    mut_buf = in_buf.prepare(varint - in_buf.size());
-    net::async_read(sock, mut_buf, [&](const sys::error_code& ec,
+    read_buf = in_buf.prepare(varint - in_buf.size());
+    net::async_read(sock, read_buf, [&](const sys::error_code& ec,
         std::size_t len) {read_packet_handler(ec, len);});
   }
 }
@@ -146,7 +180,7 @@ void IOCore::read_packet_handler(const sys::error_code& ec, std::size_t len) {
     exit(-1);
   }
   if(encrypted)
-    decryptor->process(static_cast<std::uint8_t*>(mut_buf.data()), len);
+    decryptor->process(static_cast<std::uint8_t*>(read_buf.data()), len);
   in_buf.commit(len);
   if(!compressed) {
     std::int64_t packet_id;
@@ -200,6 +234,17 @@ void IOCore::enable_encryption(EventCore::ev_id_type ev_id, const void* data) {
   decryptor->set_key(shared_secret, std::size(shared_secret));
   decryptor->start(shared_secret, std::size(shared_secret));
   encrypted = true;
+}
+
+void IOCore::enable_compression(EventCore::ev_id_type ev_id,
+    const void* data) {
+  auto packet = static_cast<const mcd::ClientboundCompress*>(data);
+  threshold = packet->threshold;
+
+  compressor->clear();
+  compressor->start(1);
+  decompressor->clear();
+  decompressor->start();
 }
 
 } // namespace rkr
