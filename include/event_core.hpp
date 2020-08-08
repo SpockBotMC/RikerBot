@@ -22,7 +22,7 @@ public:
   typedef std::uint64_t cb_id_type;
   typedef std::function<void(ev_id_type, const void*)> event_cb;
 
-  EventCore(rkr::PluginLoader& ploader);
+  EventCore(rkr::PluginLoader& ploader, bool ownership = false);
   ev_id_type register_event(std::string event_name);
 
   cb_id_type register_callback(ev_id_type event_id, event_cb cb);
@@ -35,8 +35,10 @@ public:
 
   void emit(ev_id_type event_id);
   void emit(ev_id_type event_id, const void* data);
-  void emit(ev_id_type event_id, PyObject* data);
   void emit(ev_id_type event_id, const void* data,
+      const std::string& type_query);
+  void emit(ev_id_type event_id, PyObject* data);
+  void emit(ev_id_type event_id, PyObject* data,
       const std::string& type_query);
 
 private:
@@ -58,6 +60,7 @@ private:
 
     cb_id_type subscribe(PyObject* cb) {
       cb_id_type cb_id = get_free_id();
+      Py_INCREF(cb);
       py_cbs.emplace_back(cb_id, cb);
       return cb_id;
     }
@@ -86,9 +89,8 @@ private:
     }
 
     void emit(PyObject* data) {
-      for(auto& el : py_cbs) {
+      for(auto& el : py_cbs)
         Py_XDECREF(PyObject_CallFunctionObjArgs(el.second, data, NULL));
-      }
     }
 
     void emit() {

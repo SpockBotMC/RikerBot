@@ -11,6 +11,7 @@ public:
   const std::optional<std::string> type_query;
   PluginBase() = default;
   PluginBase(std::string type_query);
+
 };
 
 } // namespace rkr

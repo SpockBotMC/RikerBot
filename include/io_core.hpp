@@ -40,7 +40,7 @@ public:
   compression_state compression;
   int kill;
 
-  IOCore(rkr::PluginLoader& ploader);
+  IOCore(rkr::PluginLoader& ploader, bool ownership = false);
   void run();
   void encode_packet(const mcd::Packet& packet);
   // Not std::string view because SWIG doesn't have a wrapper for string_view

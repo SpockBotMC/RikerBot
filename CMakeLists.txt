@@ -54,7 +54,7 @@ swig_add_library(Proto
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES ${PROTO_INTERFACE} ${PROTO_IMPL} src/datautils.cpp
 )
-set_target_properties(Proto PROPERTIES PREFIX _ OUTPUT_NAME Proto${MC_USCORE}
+set_target_properties(Proto PROPERTIES OUTPUT_NAME Proto${MC_USCORE}
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/riker)
 target_compile_features(Proto PRIVATE cxx_std_20)
@@ -71,7 +71,7 @@ swig_add_library(PluginLoader
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES swig/PluginLoader.i src/plugin_loader.cpp
 )
-set_target_properties(PluginLoader PROPERTIES PREFIX _ OUTPUT_NAME PluginLoader
+set_target_properties(PluginLoader PROPERTIES OUTPUT_NAME CPluginLoader
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/riker)
 target_compile_features(PluginLoader PRIVATE cxx_std_20)
@@ -88,7 +88,7 @@ swig_add_library(EventCore
   SOURCES swig/EventCore.i src/event_core.cpp src/plugin_loader.cpp
       src/plugin_base.cpp
 )
-set_target_properties(EventCore PROPERTIES PREFIX _ OUTPUT_NAME EventCore
+set_target_properties(EventCore PROPERTIES OUTPUT_NAME CEventCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/riker)
 target_compile_features(EventCore PRIVATE cxx_std_20)
@@ -105,7 +105,7 @@ swig_add_library(IOCore
   SOURCES swig/IOCore.i src/io_core.cpp src/plugin_loader.cpp
       src/plugin_base.cpp src/event_core.cpp src/datautils.cpp ${PROTO_IMPL}
 )
-set_target_properties(IOCore PROPERTIES PREFIX _ OUTPUT_NAME IOCore
+set_target_properties(IOCore PROPERTIES OUTPUT_NAME CIOCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/riker)
 target_compile_features(IOCore PRIVATE cxx_std_20)

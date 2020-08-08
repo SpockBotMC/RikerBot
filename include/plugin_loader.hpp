@@ -7,17 +7,24 @@
 #include<string>
 #include<unordered_map>
 #include "plugin_base.hpp"
+#include <vector>
+#include <memory>
 
 namespace rkr {
 
 class PluginLoader {
 public:
-  PluginBase* get_class(std::string class_name);
-  PyObject* py_get_class(std::string class_name);
+  PluginBase* require(std::string class_name);
+  PyObject* py_require(std::string class_name);
 
-  void provide_class(std::string class_name, rkr::PluginBase* class_ptr);
+  void provide(std::string class_name, rkr::PluginBase* class_ptr,
+      bool own = false);
+  void provide(std::string class_name, PyObject* pyo);
+
 private:
+  std::vector<std::unique_ptr<PluginBase>> owned;
   std::unordered_map<std::string, PluginBase*> class_map;
+  std::unordered_map<std::string, PyObject *> pyo_map;
 };
 
 

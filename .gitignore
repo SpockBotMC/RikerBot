@@ -7,7 +7,7 @@ run.py
 
 # Auto generated files
 MinecraftProtocol.py
-EventCore.py
-IOCore.py
-PluginLoader.py
+CEventCore.py
+CIOCore.py
+CPluginLoader.py
 Proto*.py

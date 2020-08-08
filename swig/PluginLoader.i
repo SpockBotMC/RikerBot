@@ -1,9 +1,9 @@
-%module PluginLoader
+%module CPluginLoader
 %{
 #include "plugin_loader.hpp"
 %}
 
 %include <std_string.i>
-%ignore get_class;
-%rename(get_class) py_get_class;
+%ignore require;
+%rename(require) py_require;
 %include "plugin_loader.hpp"

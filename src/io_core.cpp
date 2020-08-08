@@ -7,11 +7,12 @@
 
 namespace rkr {
 
-IOCore::IOCore(PluginLoader& ploader) : PluginBase("rkr::IOCore *"),
-    state(mcd::HANDSHAKING), compression(COMPRESSION_DISABLED), kill(0),
-    sock(ctx), rslv(ctx), in_is(&in_buf) {
-  ploader.provide_class("io", this);
-  ev = static_cast<EventCore*>(ploader.get_class("event"));
+IOCore::IOCore(PluginLoader& ploader, bool ownership) :
+    PluginBase("rkr::IOCore *"), state(mcd::HANDSHAKING),
+    compression(COMPRESSION_DISABLED), kill(0), sock(ctx), rslv(ctx),
+    in_is(&in_buf) {
+  ploader.provide("io", this, ownership);
+  ev = static_cast<EventCore*>(ploader.require("event"));
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
   connect_event = ev->register_event("net_connect");
   kill_event = ev->register_event("kill");

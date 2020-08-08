@@ -3,25 +3,39 @@
 
 namespace rkr {
 
-PluginBase* PluginLoader::get_class(std::string class_name) {
+PluginBase* PluginLoader::require(std::string class_name) {
   if(class_map.contains(class_name))
     return class_map[class_name];
   return nullptr;
 }
 
-PyObject* PluginLoader::py_get_class(std::string class_name) {
-  if(!class_map.contains(class_name))
+PyObject* PluginLoader::py_require(std::string class_name) {
+  if(class_map.contains(class_name)) {
+    PluginBase* pl = class_map[class_name];
+    if(pl->type_query)
+      return SWIG_NewPointerObj(static_cast<void*>(pl),
+          SWIG_TypeQuery(pl->type_query.value().c_str()), 0);
     Py_RETURN_NONE;
-  PluginBase* pl = class_map[class_name];
-  if(pl->type_query)
-    return SWIG_NewPointerObj(static_cast<void*>(pl),
-        SWIG_TypeQuery(pl->type_query.value().c_str()), 0);
+  } else if(pyo_map.contains(class_name)) {
+    PyObject* pyo = pyo_map[class_name];
+    Py_INCREF(pyo);
+    return pyo;
+  }
   Py_RETURN_NONE;
 }
 
-void PluginLoader::provide_class(std::string class_name,
-    PluginBase* class_ptr) {
+void PluginLoader::provide(std::string class_name,
+    PluginBase* class_ptr, bool own) {
+  if(own)
+    owned.emplace_back(class_ptr);
   class_map[class_name] = class_ptr;
+}
+
+void PluginLoader::provide(std::string class_name, PyObject* pyo) {
+  Py_INCREF(pyo);
+  if(pyo_map.contains(class_name))
+    Py_DECREF(pyo_map[class_name]);
+  pyo_map[class_name] = pyo;
 }
 
 } //namespace rkr
