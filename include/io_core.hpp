@@ -4,8 +4,8 @@
 #include <string>
 #include <cstdint>
 #include <memory>
+#include <zlib.h>
 #include <botan/cipher_mode.h>
-#include <botan/compression.h>
 #include <net.hpp>
 #include <boost/asio.hpp>
 
@@ -59,14 +59,15 @@ private:
   EventCore::ev_id_type kill_event;
   std::unique_ptr<Botan::Cipher_Mode> encryptor;
   std::unique_ptr<Botan::Cipher_Mode> decryptor;
-  std::unique_ptr<Botan::Compression_Algorithm> compressor;
-  std::unique_ptr<Botan::Decompression_Algorithm> decompressor;
+  z_stream inflator;
+  z_stream deflator;
   std::size_t threshold;
   boost::asio::mutable_buffer read_buf;
 
   std::array<std::array<std::vector<EventCore::ev_id_type>,
       mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
 
+  void read_header();
   void read_packet(std::size_t len);
   void connect_handler(const sys::error_code& ec,
       const ip::tcp::endpoint& ep);

@@ -14,7 +14,7 @@ swig_interface = (
   '%rename(_property) property;',
   '',
   '%typemap(out) (std::vector<char>) {',
-  '  $result = PyMemoryView_FromMemory($1.data(), $1.size(), PyBUF_READ);',
+  '  $result = PyBytes_FromStringAndSize($1.data(), $1.size());',
   '}',
   '',
   '%include "datautils.hpp"',

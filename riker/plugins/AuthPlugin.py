@@ -12,12 +12,13 @@ class AuthCore:
     self.auth_timeout = auth_timeout
     self.ygg = Yggdrasil()
     self._username = None
+    self.login_success = event.register_event('auth_login_success')
     self.login_error = event.register_event('auth_login_error')
 
   def set_username(self, username):
     self.ygg.username = username
 
-  username = property(lambda: self._username, set_username)
+  username = property(lambda self: self._username, set_username)
 
   def set_password(self, password):
     self.ygg.password = password
@@ -30,6 +31,8 @@ class AuthCore:
       return True
     if self.ygg.login():
       self._username = self.ygg.selected_profile['name']
+      print(f"Successful Login, username is: {self._username}")
+      self.event.emit(self.login_success)
       return True
     self.event.emit(self.login_error)
 
@@ -38,7 +41,7 @@ class AuthCore:
 class AuthPlugin(PluginBase):
   requires = ('Event', 'IO')
   events = {
-    'ClientboundEncryptionBegin': 'handle_session_auth'
+    'ClientboundEncryptionBegin': 'handle_session_auth',
   }
   defaults = {
       'online_mode': True,
@@ -53,23 +56,26 @@ class AuthPlugin(PluginBase):
     self.core = AuthCore(self.io, self.event, self.auth_timeout,
         self.settings['online_mode'])
     ploader.provide('Auth', self.core)
+    self.session_auth = self.event.register_event("auth_session_success")
 
   def handle_session_auth(self, event_id, packet):
-    server_id = packet.serverId.encode('ascii') # Should be blank
-    secret = self.io.shared_secret.tobytes()
-    pubkey = packet.publicKey.tobytes()
-    digest = sha1(server_id + secret + pubkey).digest()
+    sev_id = packet.serverId.encode('ascii') # Should be blank
+    digest = sha1(sev_id + self.io.shared_secret + packet.publicKey).digest()
     data = json.dumps({
       'accessToken': self.core.ygg.access_token,
-      'selectedProfile': self.core.ygg.selected_profile,
-      'serverId': format(int.from_bytes(digest, 'big', signed = True), 'x'),
+      'selectedProfile': self.core.ygg.selected_profile['id'],
+      'serverId':format(int.from_bytes(digest, 'big', signed = True), 'x')
     }).encode('utf-8')
     url = 'https://sessionserver.mojang.com/session/minecraft/join'
     req = request.Request(url, data, {'Content-Type': 'application/json'})
     try:
-      rep = request.urlopen(req, timeout = self.auth_timeout
-          ).read().decode('utf-8')
+      rep = request.urlopen(req, timeout = self.auth_timeout)
+      print(rep.getcode())
+      rep = rep.read().decode('utf-8')
     except error.URLError:
       rep = "Couldn't connect to sessionserver.mojang.com"
     if rep:
       print(rep)
+    else:
+      print("Successful session auth")
+      self.event.emit(self.session_auth)

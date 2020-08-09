@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 
@@ -20,6 +21,7 @@ class Yggdrasil(object):
       return True
     if self.access_token and self.client_token and self.refresh():
       return True
+    self.client_token = uuid4().hex
     return self.username and self.password and self.authenticate()
 
   def logout(self):

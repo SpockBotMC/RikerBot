@@ -9,14 +9,11 @@ Development repo for a C++20/Python based Minecraft bot. Not much to see here
 right now.
 
 Things Riker can do today:
- * Connect
- * Very technically parse all packets, as long as they're not compressed or
-   encrypted.
+ * Full Duplex protocol support for non-online servers
+ * Supports Minecraft Authentication (not very useful without encryption)
 
 Feature Roadmap:
- * Authentication
- * |ss| Encryption |se|
- * |ss| Compression |se|
+ * Encryption
  * Chunk Parsing
  * Physics
  * Pathfinding
@@ -34,7 +31,8 @@ Build Requiremenets
 * cmake
 * C++20 compiler, likely only GCC 10.1+ works right now
 * Boost >= 1.72 (asio, logging, streambufs)
-* Botan-2 (crypto, zlib)
+* zlib (compression)
+* Botan-2 (crypto)
 * SWIG 4.0
 * Python3
 * The latest git of `python-minecraft-data <https://github.com/SpockBotMC/python-minecraft-data>`_

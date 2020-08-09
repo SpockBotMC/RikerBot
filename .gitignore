@@ -5,6 +5,11 @@ __pycache__
 *.pyc
 run.py
 
+# I write a lot of test scripts and experimental plugins in the root folder
+/*.py
+# For saving login tokens
+*token*
+
 # Auto generated files
 MinecraftProtocol.py
 CEventCore.py

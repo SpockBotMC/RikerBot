@@ -511,7 +511,7 @@ void MCEntityMetadata::decode(std::istream &src) {
       case METATAG_VILLAGERDATA: {
         auto& data = tag.value.emplace<std::array<std::int32_t, 3>>();
         for(auto &el : data)
-          el = dec_bef32(src);
+          el = dec_varint(src);
       }
         break;
       case METATAG_OPTVARINT: {

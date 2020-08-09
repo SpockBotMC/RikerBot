@@ -28,5 +28,5 @@ class StartPlugin(PluginBase):
     packet.serverPort = connect_data.port
     self.io.encode_packet(packet)
     packet = proto.ServerboundLoginStart()
-    packet.username = "nickelpro"
+    packet.username = self.auth.username
     self.io.encode_packet(packet)

@@ -34,6 +34,7 @@ add_custom_command(
   COMMAND mv
   ARGS MinecraftProtocol.py ${CMAKE_CURRENT_SOURCE_DIR}/riker/proto
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  DEPENDS generate.py
   COMMENT "Generating protocol files"
   VERBATIM
 )
