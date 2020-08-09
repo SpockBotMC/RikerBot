@@ -2,7 +2,7 @@ import json
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 
-class YggdrasilCore(object):
+class Yggdrasil(object):
   ygg_version = 1
   ygg_url = 'https://authserver.mojang.com'
 

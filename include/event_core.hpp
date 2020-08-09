@@ -89,15 +89,33 @@ private:
     }
 
     void emit(PyObject* data) {
-      for(auto& el : py_cbs)
-        Py_XDECREF(PyObject_CallFunctionObjArgs(el.second, data, NULL));
+      for(auto& el : py_cbs) {
+        auto ev_id = PyLong_FromUnsignedLongLong(event_id);
+        PyObject* result = PyObject_CallFunctionObjArgs(el.second, ev_id,
+            data, NULL);
+        if(!result) {
+          PyErr_Print();
+          exit(-1);
+        }
+        Py_DECREF(result);
+        Py_DECREF(ev_id);
+      }
     }
 
     void emit() {
       for(auto& el : event_cbs)
         el.second(event_id, nullptr);
-      for(auto& el : py_cbs)
-        Py_XDECREF(PyObject_CallFunctionObjArgs(el.second, Py_None, NULL));
+      for(auto& el : py_cbs) {
+        auto ev_id = PyLong_FromUnsignedLongLong(event_id);
+        PyObject* result = PyObject_CallFunctionObjArgs(el.second, ev_id,
+            Py_None, NULL);
+        if(!result) {
+          PyErr_Print();
+          exit(-1);
+        }
+        Py_DECREF(result);
+        Py_DECREF(ev_id);
+      }
     }
 
   private:

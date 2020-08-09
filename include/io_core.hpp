@@ -34,7 +34,6 @@ struct ConnectData {
 
 class IOCore : public PluginBase {
 public:
-  mcd::packet_state state;
   int kill;
   std::uint8_t shared_secret[16];
 
@@ -45,6 +44,7 @@ public:
 
 private:
   EventCore* ev;
+  mcd::packet_state state;
   bool compressed;
   bool encrypted;
   net::io_context ctx;
@@ -52,6 +52,7 @@ private:
   ip::tcp::resolver rslv;
   boost::asio::streambuf out_buf;
   boost::asio::streambuf in_buf;
+  boost::asio::streambuf pak_buf;
   std::ostream out_os;
   std::istream in_is;
   EventCore::ev_id_type connect_event;
@@ -66,14 +67,18 @@ private:
   std::array<std::array<std::vector<EventCore::ev_id_type>,
       mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
 
+  void read_packet(std::size_t len);
   void connect_handler(const sys::error_code& ec,
       const ip::tcp::endpoint& ep);
   void write_handler(const sys::error_code& ec, std::size_t len);
   void header_handler(const sys::error_code& ec, std::size_t len);
-  void read_packet_handler(const sys::error_code& ec, std::size_t len);
+  void read_packet_handler(const sys::error_code& ec, std::size_t len,
+      int32_t packet_len);
   void encryption_begin_handler(EventCore::ev_id_type ev_id, const void* data);
   void enable_encryption(EventCore::ev_id_type ev_id, const void* data);
   void enable_compression(EventCore::ev_id_type ev_id, const void* data);
+  void transition_state(EventCore::ev_id_type ev_id, const void* data);
+  void login_success(EventCore::ev_id_type ev_id, const void* data);
 };
 
 } // namespace rkr

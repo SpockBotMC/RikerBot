@@ -9,6 +9,11 @@ def solve_dependencies(ploader, plugins, settings = None):
   plugins = copy.copy(plugins)
   settings = settings if settings else {}
 
+  for name, plugin in plugins:
+    if hasattr(plugin, 'pl_announce'):
+      for ident in plugin.pl_announce:
+        announce[ident] = (name, plugin)
+
   def load_plugin(plugin_tuple):
     name, plugin = plugin_tuple
     requirements = plugin.requires
@@ -23,11 +28,6 @@ def solve_dependencies(ploader, plugins, settings = None):
     if hasattr(plugin, 'pl_announce'):
       loaded.extend(plugin.pl_announce)
     plugins.remove(plugin_tuple)
-
-  for name, plugin in plugins:
-    if hasattr(plugin, 'pl_announce'):
-      for ident in plugin.pl_announce:
-        announce[ident] = (name, plugin)
 
   # Event is loaded implicitly
   ev = announce['Event']
