@@ -20,8 +20,8 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
   Botan::system_rng().randomize(shared_secret, std::size(shared_secret));
 
-  encryptor = Botan::Cipher_Mode::create("AES-128/CFB", Botan::ENCRYPTION);
-  decryptor = Botan::Cipher_Mode::create("AES-128/CFB", Botan::DECRYPTION);
+  encryptor = Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::ENCRYPTION);
+  decryptor = Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::DECRYPTION);
   inflator = {};
   inflateInit(&inflator);
   deflator = {};
@@ -73,12 +73,14 @@ void IOCore::run() {
     // Last packet was so small that we already have data in the in_buf
     if(in_buf.size())
       read_header();
-    else
+    else {
       // 5 bytes is the maximum size of the packet length header, but it's
       // possible for an entire packet to be shorter than that. So we prepare
       // a 5 byte buffer then use read_some to read however many bytes come.
-      sock.async_read_some(in_buf.prepare(5), [&](const sys::error_code& ec,
+      read_buf = in_buf.prepare(5);
+      sock.async_read_some(read_buf, [&](const sys::error_code& ec,
           std::size_t len) {header_handler(ec, len);});
+    }
   }
   ev->emit(kill_event);
 }
@@ -183,9 +185,9 @@ void IOCore::read_header() {
     BOOST_LOG_TRIVIAL(fatal) << "Invalid header";
     exit(-1);
   } else if (varnum == mcd::VARNUM_OVERRUN) {
-    sock.async_read_some(in_buf.prepare(5 - in_buf.size()),
-        [&](const sys::error_code& ec, std::size_t len)
-        {header_handler(ec, len);});
+    read_buf = in_buf.prepare(5 - in_buf.size());
+    sock.async_read_some(read_buf, [&](const sys::error_code& ec,
+        std::size_t len) {header_handler(ec, len);});
   } else {
     auto varint = mcd::dec_varint(in_is);
     if(in_buf.size() >= varint) {

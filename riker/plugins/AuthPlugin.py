@@ -70,7 +70,6 @@ class AuthPlugin(PluginBase):
     req = request.Request(url, data, {'Content-Type': 'application/json'})
     try:
       rep = request.urlopen(req, timeout = self.auth_timeout)
-      print(rep.getcode())
       rep = rep.read().decode('utf-8')
     except error.URLError:
       rep = "Couldn't connect to sessionserver.mojang.com"
