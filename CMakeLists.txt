@@ -26,7 +26,7 @@ set(RKR_PACKAGE_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/rikerbot)
 set(RKR_PLUGIN_DIR ${RKR_PACKAGE_ROOT}/plugins)
 set(RKR_PROTO_DIR ${RKR_PACKAGE_ROOT}/proto)
 
-set(PROTO_INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/proto_${MC_USCORE}.i)
+set(PROTO_INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/Proto${MC_USCORE}.i)
 set(PROTO_IMPL ${CMAKE_CURRENT_BINARY_DIR}/proto_${MC_USCORE}.cpp)
 set(PROTO_GEN_FILES ${PROTO_INTERFACE} ${PROTO_IMPL}
     ${CMAKE_CURRENT_BINARY_DIR}/proto_${MC_USCORE}.hpp
@@ -129,8 +129,28 @@ target_include_directories(IOCore PRIVATE ${INCLUDES})
 target_compile_options(IOCore PRIVATE -DBOOST_ASIO_DISABLE_CONCEPTS
     -DBOOST_LOG_DYN_LINK)
 target_link_libraries(IOCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
-add_dependencies(IOCore proto_gen swig_runtime)
+add_dependencies(IOCore proto_gen)
 list(APPEND RIKER_DEPENDS IOCore)
+
+
+# Logger
+set_property(SOURCE swig/Logger.i PROPERTY CPLUSPLUS ON)
+swig_add_library(Logger
+  LANGUAGE python
+  OUTPUT_DIR ${RKR_PACKAGE_ROOT}
+  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
+  SOURCES swig/Logger.i src/logger.cpp
+)
+set_target_properties(Logger PROPERTIES OUTPUT_NAME CLogger
+    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
+    LIBRARY_OUTPUT_DIRECTORY ${RKR_PACKAGE_ROOT})
+# Broken on C++20 until 1.73, changed this once distros have decent support for
+# 1.73 (looking at you Arch)
+target_compile_features(Logger PRIVATE cxx_std_17)
+target_include_directories(Logger PRIVATE ${INCLUDES})
+target_compile_options(Logger PRIVATE -DBOOST_LOG_DYN_LINK)
+target_link_libraries(Logger ${Boost_LOG_LIBRARY})
+list(APPEND RIKER_DEPENDS Logger)
 
 
 

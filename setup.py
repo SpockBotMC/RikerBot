@@ -18,7 +18,6 @@ class RKRExtension(Extension):
 
 class build_RKRExtensions(build_ext):
   def run(self):
-    print("running")
     for ext in (x for x in self.extensions if isinstance(x, RKRExtension)):
       source = f"{ext.path}{suffix}"
       build_dir = pathlib.PurePath(self.get_ext_fullpath(ext.name)).parent

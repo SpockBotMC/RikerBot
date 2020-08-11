@@ -1,4 +1,4 @@
-from riker.PluginBase import PluginBase, pl_announce
+from rikerbot.PluginBase import PluginBase, pl_announce
 from .CEventCore import EventCore
 
 @pl_announce('Event')

@@ -1,4 +1,4 @@
-from riker.PluginBase import PluginBase, pl_announce
+from rikerbot.PluginBase import PluginBase, pl_announce
 from .CIOCore import IOCore
 
 @pl_announce('IO')

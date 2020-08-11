@@ -23,7 +23,7 @@ swig_interface = (
   '',
 )
 
-with open(f"proto_{version}.i", "w") as f:
+with open(f"Proto{version}.i", "w") as f:
   f.write("\n".join(swig_interface))
 
 with open(f"MinecraftProtocol.py", "w") as f:

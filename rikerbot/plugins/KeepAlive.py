@@ -1,5 +1,5 @@
-from riker.PluginBase import PluginBase
-from riker import proto
+from rikerbot.PluginBase import PluginBase
+from rikerbot import proto
 
 class KeepAlivePlugin(PluginBase):
   requires = ('IO')

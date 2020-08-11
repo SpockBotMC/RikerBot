@@ -17,4 +17,5 @@ MinecraftProtocol.py
 CEventCore.py
 CIOCore.py
 CPluginLoader.py
+CLogger.py
 Proto*.py

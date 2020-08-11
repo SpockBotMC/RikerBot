@@ -1,5 +1,5 @@
-from riker.PluginBase import PluginBase, pl_announce
-from riker import proto
+from rikerbot.PluginBase import PluginBase, pl_announce
+from rikerbot import proto
 
 @pl_announce('Start')
 class StartPlugin(PluginBase):

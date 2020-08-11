@@ -20,8 +20,12 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
   Botan::system_rng().randomize(shared_secret, std::size(shared_secret));
 
+  // If you can find where it's documented you need to pass /8 here in order to
+  // get Botan to set the feedback bits correctly, please tell me. I spent a
+  // full day debugging this.
   encryptor = Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::ENCRYPTION);
   decryptor = Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::DECRYPTION);
+
   inflator = {};
   inflateInit(&inflator);
   deflator = {};
@@ -145,7 +149,6 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
   out_buf.commit(write_size);
   write_buf.consume(write_size);
 
-  BOOST_LOG_TRIVIAL(debug) << "Sending packet: " << packet.name;
   ev->emit(packet_event_ids[state][mcd::SERVERBOUND][packet.packet_id],
       static_cast<const void*>(&packet), "mcd::" + packet.name + " *");
 }
@@ -265,7 +268,6 @@ void IOCore::read_packet(size_t len) {
         << pak_is.fail() << " Size: " << pak_buf.size();
     exit(-1);
   }
-  BOOST_LOG_TRIVIAL(debug) << "Recieved packet: " << packet->name;
 
   ev->emit(packet_event_ids[state][mcd::CLIENTBOUND][packet->packet_id],
       static_cast<const void*>(packet.get()), "mcd::" + packet->name + " *");
@@ -281,6 +283,7 @@ void IOCore::encryption_begin_handler(EventCore::ev_id_type ev_id,
   auto enc = Botan::PK_Encryptor_EME(*key, rng, "PKCS1v15");
   auto result = enc.encrypt(shared_secret, std::size(shared_secret), rng);
   auto resp = mcd::ServerboundEncryptionBegin();
+  // ToDo: std::swap can be used here maybe?
   resp.sharedSecret.resize(result.size());
   std::memcpy(resp.sharedSecret.data(), result.data(), result.size());
   result = enc.encrypt(reinterpret_cast<const std::uint8_t*>(

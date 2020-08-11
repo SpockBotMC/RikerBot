@@ -2,8 +2,9 @@ from hashlib import sha1
 from urllib import request, error
 import json
 
-from riker.proto.yggdrasil import Yggdrasil
-from riker.PluginBase import PluginBase, pl_announce
+from rikerbot import logger
+from rikerbot.proto.yggdrasil import Yggdrasil
+from rikerbot.PluginBase import PluginBase, pl_announce
 
 class AuthCore:
   def __init__(self, io, event, online_mode, auth_timeout):
@@ -31,7 +32,7 @@ class AuthCore:
       return True
     if self.ygg.login():
       self._username = self.ygg.selected_profile['name']
-      print(f"Successful Login, username is: {self._username}")
+      logger.info(f"Successful Login, username is: {self._username}")
       self.event.emit(self.login_success)
       return True
     self.event.emit(self.login_error)
@@ -74,7 +75,7 @@ class AuthPlugin(PluginBase):
     except error.URLError:
       rep = "Couldn't connect to sessionserver.mojang.com"
     if rep:
-      print(rep)
+      logger.warning(rep)
     else:
-      print("Successful session auth")
+      logger.info("Successful Session Auth")
       self.event.emit(self.session_auth)

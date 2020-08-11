@@ -60,9 +60,11 @@ I work on Minecraft.
 
 * `TkTech <https://github.com/TkTech>`_, **Grand Poobah of Third-Party
   Minecraft**, keeps the lights on for us lesser devs.
+
 * `Pokechu22 <https://github.com/Pokechu22>`_, **Master Scribe and Artisan**,
   documents all things Minecraft great and small and maintains irreplacable
   infrastructure like Burger.
+
 * `rom1504 <https://github.com/rom1504>`_, **Chairman of the Prismarine**, this
   project literally doesn't exist without the hard work of Rom and all the
   other Prismarine contributors.
@@ -72,12 +74,5 @@ And thanks to my friends `gjum <https://github.com/Gjum>`_, and
 RikerBot could run and knowing that people liked my little block game robot
 enough to so significantly improve it meant and means a lot.
 
-.. |ss| raw:: html
-
-   <strike>
-
-.. |se| raw:: html
-
-   </strike>
 
 .. _Mineflayer: https://github.com/PrismarineJS/mineflayer
