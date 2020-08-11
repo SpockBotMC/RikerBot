@@ -1,14 +1,16 @@
 .vscode
 build
+dist
 __pycache__
 *.so
 *.pyc
-run.py
+*.egg-info
 
 # I write a lot of test scripts and experimental plugins in the root folder
 /*.py
+!/setup.py
 # For saving login tokens
-*token*
+/*token*
 
 # Auto generated files
 MinecraftProtocol.py

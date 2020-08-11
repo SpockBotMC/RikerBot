@@ -52,6 +52,26 @@ Please open issues or better yet, a pull request for things you would like to
 see in Riker. You can find `me <https://github.com/nickelpro>`_ on Freenode
 #mcdevs as ``nickelpro`` or reach out to me through email or social media.
 
+Special Thanks
+--------------
+Lots of people have contributed to the third-party Minecraft community, too
+many to list here. These are some people who's work I interact with everytime
+I work on Minecraft.
+
+* `TkTech <https://github.com/TkTech>`_, **Grand Poobah of Third-Party
+  Minecraft**, keeps the lights on for us lesser devs.
+* `Pokechu22 <https://github.com/Pokechu22>`_, **Master Scribe and Artisan**,
+  documents all things Minecraft great and small and maintains irreplacable
+  infrastructure like Burger.
+* `rom1504 <https://github.com/rom1504>`_, **Chairman of the Prismarine**, this
+  project literally doesn't exist without the hard work of Rom and all the
+  other Prismarine contributors.
+
+And thanks to my friends `gjum <https://github.com/Gjum>`_, and
+`gamingrobot <https://github.com/gamingrobot>`_. SpockBot walked so that
+RikerBot could run and knowing that people liked my little block game robot
+enough to so significantly improve it meant and means a lot.
+
 .. |ss| raw:: html
 
    <strike>
