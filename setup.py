@@ -34,6 +34,11 @@ def find_extensions(directory):
         extensions.append(RKRExtension(os.path.join(path, filename.stem)))
   return extensions
 
+# Very fragile check that the project has actually been compiled, while I work
+# on a real solution to https://github.com/SpockBotMC/RikerBot/issues/4
+if  not os.path.isfile('rikerbot/CLogger.py'):
+  raise RuntimeError("Rikerbot must be compiled with cmake before it can be "
+      "installed using this setup.py script")
 
 setup(
   name = 'rikerbot',
