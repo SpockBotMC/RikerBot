@@ -126,7 +126,6 @@ public:
 
 class MCEntityEquipment {
 public:
-  std::int32_t entity_id;
   struct item {
     std::int8_t slot;
     MCSlot item;

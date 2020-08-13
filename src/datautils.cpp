@@ -344,7 +344,6 @@ void MCTag::decode(std::istream &src) {
 }
 
 void MCEntityEquipment::encode(std::ostream &dest) const {
-  enc_varint(dest, entity_id);
   for(auto el = equipments.begin(); el != --equipments.end(); ++el) {
     enc_byte(dest, 0x80 | el->slot);
     el->item.encode(dest);
@@ -354,7 +353,6 @@ void MCEntityEquipment::encode(std::ostream &dest) const {
 }
 
 void MCEntityEquipment::decode(std::istream &src) {
-  entity_id = dec_varint(src);
   equipments.clear();
   std::uint8_t slot;
   do {
