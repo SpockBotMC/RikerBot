@@ -2,6 +2,10 @@
 build
 dist
 __pycache__
+_build
+_static
+_templates
+*.pyd
 *.so
 *.pyc
 *.egg-info

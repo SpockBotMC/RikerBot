@@ -30,8 +30,7 @@ def solve_dependencies(ploader, plugins, settings = None):
     plugins.remove(plugin_tuple)
 
   # Event is loaded implicitly
-  ev = announce['Event']
-  load_plugin(ev)
+  load_plugin(announce['Event'])
 
   while plugins:
     load_plugin(plugins[0])
