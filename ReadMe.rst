@@ -34,26 +34,24 @@ Framework Nice-To-Haves:
 Housekeeping:
  * Spin mcd2cpp out into its own project
 
-Build Requiremenets
---------------------
+Usage
+-----
 
-* cmake
-* C++20 compiler, likely only GCC 10.1+ works right now
-* Boost >= 1.72 (asio, logging, streambufs)
-* zlib (compression)
-* Botan-2 (crypto)
-* SWIG 4.0
-* Python3
-* The latest git of `python-minecraft-data <https://github.com/SpockBotMC/python-minecraft-data>`_
+Please refer to  `the documentation
+<https://rikerbot.readthedocs.io/en/latest/installation.html>`_ for building
+and installing RikerBot. The project is still extremely young and changes are
+happening daily, so the documentation, where it exists, may lag actual usage.
 
 Get Involved
 ------------
+
 Please open issues or better yet, a pull request for things you would like to
 see in Riker. You can find `me <https://github.com/nickelpro>`_ on Freenode
 #mcdevs as ``nickelpro`` or reach out to me through email or social media.
 
 Special Thanks
 --------------
+
 Lots of people have contributed to the third-party Minecraft community, too
 many to list here. These are some people who's work I interact with everytime
 I work on Minecraft.
