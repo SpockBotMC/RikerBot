@@ -440,7 +440,7 @@ class mc_bitfield(complex_type):
         64: num_i64
     }
     self.fields = []
-    self.mask_shift = []
+    self.extra_data = []
     self.field_sizes = {}
 
     total = 0
@@ -452,24 +452,26 @@ class mc_bitfield(complex_type):
       shift = 0
       for temp in type_data[idx + 1:]:
         shift += temp['size']
-      self.mask_shift.append(((1<<field['size'])-1, shift))
+      self.extra_data.append(((1<<field['size'])-1, shift, field['size'],
+          field['signed']))
       numbits = get_storage(field['size'])
       if field['signed']:
         self.fields.append(lookup_signed[numbits](field['name'], self))
       else:
         self.fields.append(lookup_unsigned[numbits](field['name'], self))
 
-    self.storage = lookup_unsigned[total](name, self)
+    self.storage = lookup_unsigned[total](f"{name}_", self)
     self.size = total//8
 
   def encoder(self):
     ret = [*self.storage.initialization("0")]
     name = f"{self.name}." if self.name else ""
     for idx, field in enumerate(self.fields):
-      mask, shift = self.mask_shift[idx]
+      mask, shift, size, signed = self.extra_data[idx]
       shift_str = f"<<{shift}" if shift else ""
       ret.append(f"{self.storage.name} |= "
-          f"({name}{field.name}&{mask}){shift_str};")
+          f"(static_cast<{self.storage.typename}>({name}"
+          f"{field.name})&{mask}){shift_str};")
     ret.extend(self.storage.encoder())
     return ret
 
@@ -477,10 +479,15 @@ class mc_bitfield(complex_type):
     ret = [*self.storage.dec_initialized()]
     name = f"{self.name}." if self.name else ""
     for idx, field in enumerate(self.fields):
-      mask, shift = self.mask_shift[idx]
+      mask, shift, size, signed = self.extra_data[idx]
       shift_str = f">>{shift}" if shift else ""
       ret.append(f"{name}{field.name} = "
       f"({self.storage.name}{shift_str})&{mask};")
+      if signed:
+        ret.extend((
+          f"if({name}{field.name} & (1UL << {size - 1}))",
+          f"{indent}{name}{field.name} -= 1UL << {size};"
+        ))
     return ret
 
 # Whatever you think an MCD "switch" is you're probably wrong
