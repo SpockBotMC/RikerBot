@@ -18,13 +18,25 @@ class AuthCore:
 
   def set_username(self, username):
     self.ygg.username = username
-
   username = property(lambda self: self._username, set_username)
 
   def set_password(self, password):
     self.ygg.password = password
+  password = property(lambda self: bool(self.ygg.password), set_password)
 
-  password = property(lambda x: bool(x.ygg.password), set_password)
+  def set_client_token(self, token):
+    self.ygg.client_token = token
+  client_token = property(lambda self: self.ygg.client_token, set_client_token)
+
+  def set_access_token(self, token):
+    self.ygg.access_token = token
+  access_token = property(lambda self: self.ygg.access_token, set_access_token)
+
+  def set_access_token(self, token):
+    self.ygg.access_token = token
+  access_token = property(lambda self: self.ygg.access_token, set_access_token)
+
+  selected_profile = property(lambda self: self.ygg.selected_profile)
 
   def login(self):
     if not self.online_mode:

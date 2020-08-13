@@ -12,10 +12,8 @@ class StartPlugin(PluginBase):
     super().__init__(ploader, settings)
     ploader.provide("Start", self.start)
 
-  def start(self, username="", password="", host="localhost", port="25565",
-      online = True):
-    self.auth.username = username
-    self.auth.password = password
+  def start(self, host="localhost", port="25565", online = True):
+    port = str(port)
     self.auth.login()
     self.io.connect(host, port)
     self.io.run()

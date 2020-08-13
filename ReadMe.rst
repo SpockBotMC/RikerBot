@@ -9,7 +9,8 @@ Development repo for a C++20/Python based Minecraft bot. Not much to see here
 right now.
 
 Things Riker can do today:
- * Full protocol support, including authentication
+ * Full protocol support, including authentication, targeting the latest
+   protocol supported by minecraft-data_ (currently 1.16.1)
 
 Why build Riker and not work on an existing project?:
  * Built from the ground up around code generation. This makes the maintenance
@@ -37,10 +38,12 @@ Housekeeping:
 Usage
 -----
 
-Please refer to  `the documentation
-<https://rikerbot.readthedocs.io/en/latest/installation.html>`_ for building
-and installing RikerBot. The project is still extremely young and changes are
-happening daily, so the documentation, where it exists, may lag actual usage.
+Please refer to  `the documentation`_ for building and installing RikerBot.
+The project is still extremely young and changes are happening daily, so the
+documentation, where it exists, may lag actual usage.
+
+The best way to get started once you have installed RikerBot is to refer to
+`the ExamplePlugin`_.
 
 Get Involved
 ------------
@@ -74,3 +77,9 @@ enough to so significantly improve it meant and means a lot.
 
 
 .. _Mineflayer: https://github.com/PrismarineJS/mineflayer
+
+.. _minecraft-data: https://github.com/PrismarineJS/minecraft-data
+
+.. _the documentation: https://rikerbot.readthedocs.io/en/latest/installation.html
+
+.. _the ExamplePlugin: https://github.com/SpockBotMC/RikerBot/blob/master/example/ExamplePlugin.py

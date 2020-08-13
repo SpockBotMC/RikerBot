@@ -81,13 +81,13 @@ list(APPEND RIKER_DEPENDS Proto)
 set_property(SOURCE swig/PluginLoader.i PROPERTY CPLUSPLUS ON)
 swig_add_library(PluginLoader
   LANGUAGE python
-  OUTPUT_DIR ${RKR_PLUGIN_DIR}
+  OUTPUT_DIR ${RKR_PACKAGE_ROOT}
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES swig/PluginLoader.i src/plugin_loader.cpp
 )
 set_target_properties(PluginLoader PROPERTIES OUTPUT_NAME CPluginLoader
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
+    LIBRARY_OUTPUT_DIRECTORY ${RKR_PACKAGE_ROOT})
 target_compile_features(PluginLoader PRIVATE cxx_std_20)
 target_include_directories(PluginLoader PRIVATE ${INCLUDES})
 add_dependencies(PluginLoader swig_runtime)
