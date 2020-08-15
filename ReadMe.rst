@@ -5,8 +5,8 @@
  The Next Generation of Minecraft Bot
 --------------------------------------
 
-Development repo for a C++20/Python based Minecraft bot. Not much to see here
-right now.
+A C++20/Python Minecraft bot under heavy development. If you don't like what
+you see today, come back tomorrow! Features are arriving fast!
 
 Things Riker can do today:
  * Full protocol support, including authentication, targeting the latest
