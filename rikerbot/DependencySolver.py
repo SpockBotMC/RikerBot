@@ -7,7 +7,7 @@ def solve_dependencies(ploader, plugins, settings = None):
   loaded = []
   failed_dependencies = []
   plugins = copy.copy(plugins)
-  settings = settings if settings else {}
+  settings = {} if settings is None else settings
 
   for name, plugin in plugins:
     if hasattr(plugin, 'pl_announce'):

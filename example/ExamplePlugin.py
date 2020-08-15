@@ -31,7 +31,7 @@ class ExamplePlugin(PluginBase):
   # plugin. Any settings not provided by the user will be initialized with
   # these settings upon initializing the PluginBase.
   defaults = {
-    'ExampleSetting': True,
+    'greeting_string': "Hello, I am Rikerbot",
   }
 
   # The `events` dict maps events to callbacks from your plugin object. The
@@ -51,7 +51,9 @@ class ExamplePlugin(PluginBase):
     super().__init__(ploader, settings)
 
 
-    self.core = ExampleCore()
+    # The greeting_string setting will be "Hello, I am RikerBot" unless a user
+    # has provided a custom setting.
+    self.core = ExampleCore(settings['greeting_string'])
 
     # Cores are provided to other plugins using the plugin loader's .provide()
     # method. The plugin loader does not restrict you to just class objects,
@@ -112,12 +114,21 @@ class ExamplePlugin(PluginBase):
     # Events with no data will be emitted to Python and C++ plugins with the
     # data field of their callbacks filled with None/nullptr. When a PyObject
     # is emitted as data, it will be emitted in its native form unless a
-    # TypeQuery string is provided to convert it to a native C/C++ object.
-    # That's advanced usage that you don't usually need to worry about though.
+    # TypeQuery string is provided to convert it to a C/C++ object. That is
+    # advanced usage that you don't usually need to worry about though.
     self.event.emit(self.greeting_sent)
 
 if __name__ == "main":
   from rikerbot import SimpleClient
-  plugins = [ExamplePlugin]
-  client = SimpleClient(plugins = plugins, online_mode = False)
+  # Settings dicts map a name to a dictionary of settings
+  settings = {
+    'example': {
+    'greeting_string': input("Please provide a greeting: ")
+   }
+  }
+  # Plugin lists are lists of tuples that provide a name (to be looked up in
+  # the settings dict), and a plugin associated with that name. The plugin will
+  # be provided with the settings associated with its name.
+  plugins = [('example', ExamplePlugin)]
+  client = SimpleClient(plugins, settings, online_mode = False)
   client.start(host = "localhost", port = 25565)

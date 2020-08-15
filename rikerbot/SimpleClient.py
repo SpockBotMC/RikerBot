@@ -4,16 +4,16 @@ import json
 import rikerbot
 
 class SimpleClient:
-  def __init__(self, additional_plugins = None, online_mode = True, *,
-      username = '', tokens_path = None):
-    if additional_plugins is None:
-      additional_plugins = []
+  def __init__(self, extra_plugins = None, settings = None,
+      online_mode = True, *, username = '', tokens_path = None):
+    extra_plugins = [] if extra_plugins is None else extra_plugins
+    settings = {} if settings is None else settings
     if tokens_path is None:
       self.tokens_path = os.path.join(os.getcwd(), "token")
 
     ploader = rikerbot.PluginLoader()
-    plugins = rikerbot.default_plugins + additional_plugins
-    for failed in rikerbot.solve_dependencies(ploader, plugins):
+    plugins = rikerbot.default_plugins + extra_plugins
+    for failed in rikerbot.solve_dependencies(ploader, plugins, settings):
       rikerbot.logger.warning(f"Failed to meet plugin dependency: {failed}")
 
     ev = ploader.require('Event')
