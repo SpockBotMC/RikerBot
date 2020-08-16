@@ -11,6 +11,7 @@ you see today, come back tomorrow! Features are arriving fast!
 Things Riker can do today:
  * Full protocol support, including authentication, targeting the latest
    protocol supported by minecraft-data_ (currently 1.16.2)
+ * Parse world updates and provide an accessible interface to block data
 
 Why build Riker and not work on an existing project?:
  * Built from the ground up around code generation. This makes the maintenance
@@ -24,16 +25,18 @@ Why build Riker and not work on an existing project?:
    needed diversity to the Minecraft bot ecosystem.
 
 Feature Roadmap:
- * Chunk Parsing :running:
- * Physics
+ * Physics :running:
  * Pathfinding
 
-Framework Nice-To-Haves:
+Framework Nice-To-Haves (things to work on when features are done):
  * Multi-threaded job system
  * More packets accessible in Python
 
-Housekeeping:
+Housekeeping (Good projects for new people!):
  * Spin mcd2cpp out into its own project
+ * Default settings parser
+ * CI builds and push to PyPI
+ * Docs, Docs, Docs, Docs, Docs!
 
 Usage
 -----

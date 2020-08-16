@@ -34,8 +34,10 @@ private:
   // x, z, y ordered x + (z*16) + y*16*16
   std::array<block_id, 16*16*16> blocks;
   void update(std::istream& data);
+  void update(std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block);
   void update_palette(std::istream& data, std::uint8_t bits_per_block);
   void update_direct(std::istream& data, std::uint8_t bits_per_block);
+  block_id get(std::uint8_t x, std::uint8_t y, std::uint8_t z);
 };
 
 class ChunkColumn {
@@ -45,6 +47,10 @@ class ChunkColumn {
   std::array<std::optional<ChunkSection>, 16> sections;
 
   void update(std::uint16_t bitmask, std::istream& data);
+  void update(std::uint8_t sec_coord, const std::vector<std::int64_t>&
+      records);
+  std::vector<std::pair<block_id, std::int32_t>> get(
+      std::vector<std::array<std::int32_t, 4>>& positions);
 };
 
 class SMPMap {
@@ -52,6 +58,10 @@ public:
   void update(const mcd::ClientboundMapChunk& packet);
   void update(const mcd::ClientboundMultiBlockChange& packet);
   void unload(const mcd::ClientboundUnloadChunk& packet);
+
+  std::vector<block_id> get(const std::vector<mcd::mc_position>& positions);
+  std::vector<block_id> get(const std::vector<std::array<std::int32_t, 3>>&
+      positions);
 
 private:
   std::unordered_map<chunk_coord, ChunkColumn, boost::hash<chunk_coord>>

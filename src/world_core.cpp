@@ -15,6 +15,10 @@ WorldCore::WorldCore(PluginLoader& ploader, bool ownership) :
   ev->register_callback("ClientboundUnloadChunk",
       [&](EventCore::ev_id_type ev_id, const void* data) {
       chunk_unload(ev_id, data);});
+
+  ev->register_callback("ClientboundMultiBlockChange",
+      [&](EventCore::ev_id_type ev_id, const void* data) {
+      multiblock_change(ev_id, data);});
 }
 
 void WorldCore::chunk_update(EventCore::ev_id_type ev_id, const void* data) {
@@ -25,6 +29,12 @@ void WorldCore::chunk_update(EventCore::ev_id_type ev_id, const void* data) {
 void WorldCore::chunk_unload(EventCore::ev_id_type ev_id, const void* data) {
   auto packet = static_cast<const mcd::ClientboundUnloadChunk*>(data);
   world.unload(*packet);
+}
+
+void WorldCore::multiblock_change(EventCore::ev_id_type ev_id,
+    const void* data) {
+  auto packet = static_cast<const mcd::ClientboundMultiBlockChange*>(data);
+  world.update(*packet);
 }
 
 } //namespace rkr

@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, find_packages, Extension, Distribution
 from setuptools.command.build_ext import build_ext
 import os
 import pathlib
@@ -6,11 +6,13 @@ import shutil
 
 suffix = '.pyd' if os.name == 'nt' else '.so'
 
-# top_level.txt is still wrong, but this is the best solution I could come up
-# with for installing pre-compiled binaries and ensuring the wheel is marked
-# as non-pure. Distutils is truly a wasteland. Thankfully, we're basically
-# guaranteed not to conflict with anything and top_level.txt doesn't affect
-# installation at all.
+class RKRDistribution(Distribution):
+  def iter_distribution_names(self):
+    for pkg in self.packages or ():
+      yield pkg
+    for module in self.py_modules or ():
+      yield module
+
 class RKRExtension(Extension):
   def __init__(self, path):
     self.path = path
@@ -46,7 +48,7 @@ setup(
       'with C++ extensions',
   license = 'zlib',
   long_description = open('ReadMe.rst').read(),
-  version = '0.0.1',
+  version = '0.0.2',
   url = 'https://github.com/SpockBotMC/RikerBot',
   packages = find_packages(exclude = ['mcd2cpp']),
   keywords = ['minecraft'],
@@ -59,5 +61,6 @@ setup(
     'Programming Language :: Python :: 3 :: Only'
   ],
   ext_modules = find_extensions("rikerbot"),
+  distclass = RKRDistribution,
   cmdclass = {'build_ext': build_RKRExtensions}
 )
