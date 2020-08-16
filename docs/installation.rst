@@ -19,7 +19,7 @@ Build Requirements:
 * Boost_   >= 1.72
 * Botan_   >= 2.0.0
 * zlib_, any version from this millenia
-* python-minecraft-data_, must be latest git
+* python-minecraft-data_, latest
 * setuptools_, any recent version
 * wheel_, any recent version
 
@@ -53,6 +53,6 @@ be successfully installed. You can verify the process worked by running
 .. _Boost: https://www.boost.org/
 .. _Botan: https://botan.randombit.net/
 .. _zlib: https://zlib.net/
-.. _python-minecraft-data: https://github.com/SpockBotMC/python-minecraft-data
+.. _python-minecraft-data: https://pypi.org/project/minecraft-data
 .. _setuptools: https://pypi.org/project/setuputils/
 .. _wheel: https://pypi.org/project/wheel/
