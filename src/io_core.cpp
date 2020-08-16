@@ -193,7 +193,7 @@ void IOCore::read_header() {
         std::size_t len) {header_handler(ec, len);});
   } else {
     auto varint = mcd::dec_varint(in_is);
-    if(in_buf.size() >= varint) {
+    if(in_buf.size() >= static_cast<std::uint64_t>(varint)) {
       read_packet(varint);
       return;
     }
@@ -319,7 +319,6 @@ void IOCore::transition_state(EventCore::ev_id_type ev_id,
 
 void IOCore::login_success(EventCore::ev_id_type ev_id,
   const void* data) {
-  auto packet = static_cast<const mcd::ClientboundSuccess*>(data);
   state = mcd::PLAY;
 }
 
