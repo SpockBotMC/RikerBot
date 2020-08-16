@@ -22,4 +22,5 @@ CEventCore.py
 CIOCore.py
 CPluginLoader.py
 CLogger.py
+CWorldCore.py
 Proto*.py

@@ -37,7 +37,7 @@ class SimpleClient:
     elif not username:
       self.auth.username = input("Username: ")
 
-  def start(self, host, port = 25565):
+  def start(self, host = "localhost", port = 25565):
     self._start(host, port, self.online_mode)
 
 
