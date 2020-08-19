@@ -21,6 +21,15 @@ WorldCore::WorldCore(PluginLoader& ploader, bool ownership) :
       multiblock_change(ev_id, data);});
 }
 
+std::vector<block_id> WorldCore::get(const std::vector<mcd::mc_position>&
+    positions) {
+  return world.get(positions);
+}
+std::vector<block_id> WorldCore::get(const std::vector<std::array<
+    std::int32_t, 3>>& positions) {
+  return world.get(positions);
+}
+
 void WorldCore::chunk_update(EventCore::ev_id_type ev_id, const void* data) {
   auto packet = static_cast<const mcd::ClientboundMapChunk*>(data);
   world.update(*packet);

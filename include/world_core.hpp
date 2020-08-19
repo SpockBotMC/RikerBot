@@ -13,6 +13,11 @@ public:
 
   WorldCore(rkr::PluginLoader& ploader, bool ownership = false);
 
+  std::vector<rkr::block_id> get(const std::vector<mcd::mc_position>&
+      positions);
+  std::vector<rkr::block_id> get(const std::vector<std::array<
+      std::int32_t, 3>>& positions);
+
   private:
   void chunk_update(EventCore::ev_id_type ev_id, const void* data);
   void chunk_unload(EventCore::ev_id_type ev_id, const void* data);
