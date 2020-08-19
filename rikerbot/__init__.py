@@ -1,6 +1,8 @@
 import rikerbot.proto
 import rikerbot.CLogger as logger
 
+from rikerbot.proto import mc_position, mc_uuid
+
 from .plugins.IOPlugin import IOPlugin
 from .plugins.EventPlugin import EventPlugin
 from .plugins.StartPlugin import StartPlugin
