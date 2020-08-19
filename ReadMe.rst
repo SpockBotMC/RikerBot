@@ -5,6 +5,9 @@
  The Next Generation of Minecraft Bot
 --------------------------------------
 
+.. image:: https://travis-ci.org/SpockBotMC/RikerBot.svg?branch=master
+    :target: https://travis-ci.org/SpockBotMC/RikerBot
+
 A C++20/Python Minecraft bot under heavy development. If you don't like what
 you see today, come back tomorrow! Features are arriving fast!
 

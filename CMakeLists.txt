@@ -129,8 +129,7 @@ set_target_properties(IOCore PROPERTIES OUTPUT_NAME CIOCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
     LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
 target_compile_features(IOCore PRIVATE cxx_std_20)
-target_compile_options(IOCore PRIVATE ${OPTIONS} -DBOOST_ASIO_DISABLE_CONCEPTS
-    -DBOOST_LOG_DYN_LINK)
+target_compile_options(IOCore PRIVATE ${OPTIONS} -DBOOST_ASIO_DISABLE_CONCEPTS)
 target_include_directories(IOCore PRIVATE ${INCLUDES})
 target_link_libraries(IOCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
 add_dependencies(IOCore proto_gen)
@@ -151,7 +150,7 @@ set_target_properties(Logger PROPERTIES OUTPUT_NAME CLogger
 # Broken on C++20 until 1.73, changed this once distros have decent support for
 # 1.73 (looking at you Arch)
 target_compile_features(Logger PRIVATE cxx_std_17)
-target_compile_options(Logger PRIVATE ${OPTIONS} -DBOOST_LOG_DYN_LINK)
+target_compile_options(Logger PRIVATE ${OPTIONS})
 target_include_directories(Logger PRIVATE ${INCLUDES})
 target_link_libraries(Logger ${Boost_LOG_LIBRARY})
 list(APPEND RIKER_DEPENDS Logger)
