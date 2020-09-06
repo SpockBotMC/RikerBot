@@ -1,3 +1,13 @@
+// I am 31, which is very young for my age.
+// That is enough to realize I’m a pencil that has learned
+// how to draw the Internet. I explain squiggles
+// diagramming exactly how I feel and you are drawn to read
+// in ways you cannot yet. Slow goes the drag
+// of creation, how what’s within comes to be without,
+// which is the rhythmic erection of essence.
+//   - Amy King, Wings of Desire
+
+
 #ifndef IO_CORE_HPP
 #define IO_CORE_HPP
 

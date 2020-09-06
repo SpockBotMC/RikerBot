@@ -1,3 +1,14 @@
+// I re-read your first,
+// your second, your third,
+//
+// look for your small xx,
+// feeling absurd.
+//
+// The codes we send
+// arrive with a broken chord.
+//   - Carol Ann Duffy, Text
+
+
 #include <cstdint>
 #include <cstring>
 #include <iostream>

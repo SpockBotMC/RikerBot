@@ -35,9 +35,18 @@ class PluginBase:
     # Setup the plugin's event handlers.
     if self.events:
       ev = ploader.require('Event')
-    for event in self.events.keys():
-      if hasattr(self, self.events[event]):
-        ev.register_callback(event, getattr(self, self.events[event]))
-      else:
-        raise AttributeError(f"{self.__class__.__name__} object has no "
-            f"attribute '{self.events[event]}'")
+      for event in self.events.keys():
+        if hasattr(self, self.events[event]):
+          ev.register_callback(event, getattr(self, self.events[event]))
+        else:
+          raise AttributeError(f"{self.__class__.__name__} object has no "
+              f"attribute '{self.events[event]}'")
+
+# Most C Plugins are used only for dependency resolution, they don't stick
+# around to own their core. Therefore we need to release ownership at
+# the Python level and hand it over to the plugin loader. This plugin does that
+# generically
+class CPluginBase(PluginBase):
+  core = None
+  def __init__(self, ploader, settings):
+    self.core(ploader, True).thisown = 0

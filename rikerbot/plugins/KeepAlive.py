@@ -1,3 +1,12 @@
+# forget the ink, the milk, the blood—
+# all was washed clean with the flood
+# we rose up from the falling waters
+# the fallen rain’s own sons and daughters
+#
+# and none of this, none of this matters.
+#   - Don Paterson, Rain
+
+
 from rikerbot.PluginBase import PluginBase
 from rikerbot import proto
 

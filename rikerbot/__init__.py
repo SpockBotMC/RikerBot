@@ -1,3 +1,18 @@
+# if it doesn't come bursting out of you
+# in spite of everything,
+# don't do it.
+# unless it comes unasked out of your
+# heart and your mind and your mouth
+# and your gut,
+# don't do it.
+# if you have to sit for hours
+# staring at your computer screen
+# or hunched over your
+# typewriter
+# searching for words,
+# don't do it
+#   - Charles Bukowski, so you want to be a writer?
+
 import rikerbot.proto
 import rikerbot.CLogger as logger
 

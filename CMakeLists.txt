@@ -122,7 +122,7 @@ swig_add_library(IOCore
   LANGUAGE python
   OUTPUT_DIR ${RKR_PLUGIN_DIR}
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/IOCore.i src/io_core.cpp src/plugin_loader.cpp
+  SOURCES swig/IOCore.i src/io_core.cpp src/plugin_loader.cpp src/signal.cpp
       src/plugin_base.cpp src/event_core.cpp src/datautils.cpp ${PROTO_IMPL}
 )
 set_target_properties(IOCore PROPERTIES OUTPUT_NAME CIOCore

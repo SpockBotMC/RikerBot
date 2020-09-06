@@ -1,3 +1,13 @@
+// I am 31, which is very young for my age.
+// That is enough to realize I’m a pencil that has learned
+// how to draw the Internet. I explain squiggles
+// diagramming exactly how I feel and you are drawn to read
+// in ways you cannot yet. Slow goes the drag
+// of creation, how what’s within comes to be without,
+// which is the rhythmic erection of essence.
+//   - Amy King, Wings of Desire
+
+
 #include <algorithm>
 #include <functional>
 #include <botan/system_rng.h>
@@ -7,6 +17,7 @@
 #include <boost/log/trivial.hpp>
 
 #include "datautils.hpp"
+#include "signal.hpp"
 #include "io_core.hpp"
 
 
@@ -17,6 +28,7 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
     compressed(false), encrypted(false), sock(ctx), rslv(ctx),
     out_os(&out_buf), in_is(&in_buf) {
 
+  set_signal_handlers();
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
   Botan::system_rng().randomize(shared_secret, std::size(shared_secret));
 
@@ -85,6 +97,8 @@ void IOCore::run() {
       sock.async_read_some(read_buf, [&](const sys::error_code& ec,
           std::size_t len) {header_handler(ec, len);});
     }
+    if(signal_fired)
+      kill = true;
   }
   ev->emit(kill_event);
 }
