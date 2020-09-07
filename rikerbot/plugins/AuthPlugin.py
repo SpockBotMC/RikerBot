@@ -7,7 +7,7 @@ from rikerbot.proto.yggdrasil import Yggdrasil
 from rikerbot.PluginBase import PluginBase, pl_announce
 
 class AuthCore:
-  def __init__(self, io, event, online_mode, auth_timeout):
+  def __init__(self, event, online_mode, auth_timeout):
     self.event = event
     self.online_mode = online_mode
     self.auth_timeout = auth_timeout
@@ -66,7 +66,7 @@ class AuthPlugin(PluginBase):
   def __init__(self, ploader, settings):
     super().__init__(ploader, settings)
     self.auth_timeout = self.settings['auth_timeout']
-    self.core = AuthCore(self.io, self.event, self.auth_timeout,
+    self.core = AuthCore(self.event, self.auth_timeout,
         self.settings['online_mode'])
     ploader.provide('Auth', self.core)
     self.session_auth = self.event.register_event("auth_session_success")

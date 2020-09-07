@@ -23,4 +23,5 @@ CIOCore.py
 CPluginLoader.py
 CLogger.py
 CWorldCore.py
+CStatusCore.py
 Proto*.py

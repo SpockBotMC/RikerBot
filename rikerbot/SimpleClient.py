@@ -31,14 +31,14 @@ class SimpleClient:
         self.auth.access_token = tokens['access_token']
         self.auth.ygg.selected_profile = tokens['selected_profile']
       else:
-        if not username:
-          self.auth.username = input("Login Email: ")
+        self.auth.username = username if username else input("Login Email: ")
         self.auth.password = input("Password: ")
-    elif not username:
-      self.auth.username = input("Username: ")
+    else:
+      self.auth.username = username if username else input("Username: ")
+
 
   def start(self, host = "localhost", port = 25565):
-    self._start(host, port, self.online_mode)
+    self._start(host, port)
 
 
   def write_token(self, _, __):

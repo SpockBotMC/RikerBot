@@ -24,6 +24,7 @@ from .plugins.StartPlugin import StartPlugin
 from .plugins.AuthPlugin import AuthPlugin
 from .plugins.KeepAlive import KeepAlivePlugin
 from .plugins.WorldPlugin import WorldPlugin
+from .plugins.StatusPlugin import StatusPlugin
 
 from .DependencySolver import solve_dependencies
 from .PluginBase import PluginBase, pl_announce
@@ -36,6 +37,7 @@ default_plugins = [
   ('auth', AuthPlugin),
   ('keepalive', KeepAlivePlugin),
   ('world', WorldPlugin),
+  ('status', StatusPlugin),
 ]
 
 from .SimpleClient import SimpleClient

@@ -12,7 +12,7 @@ class StartPlugin(PluginBase):
     super().__init__(ploader, settings)
     ploader.provide("Start", self.start)
 
-  def start(self, host="localhost", port="25565", online = True):
+  def start(self, host="localhost", port="25565"):
     port = str(port)
     self.auth.login()
     self.io.connect(host, port)
