@@ -44,7 +44,6 @@ struct ConnectData {
 
 class IOCore : public PluginBase {
 public:
-  int kill;
   std::uint8_t shared_secret[16];
 
   IOCore(rkr::PluginLoader& ploader, bool ownership = false);
@@ -54,19 +53,22 @@ public:
 
 private:
   EventCore* ev;
-  mcd::packet_state state;
-  bool compressed;
-  bool encrypted;
+  mcd::packet_state state = mcd::HANDSHAKING;
+  bool compressed = false;
+  bool encrypted = false;
+  bool ongoing_write = false;
   net::io_context ctx;
   ip::tcp::socket sock;
   ip::tcp::resolver rslv;
+  boost::asio::steady_timer tick_timer;
   boost::asio::streambuf out_buf;
   boost::asio::streambuf in_buf;
   boost::asio::streambuf pak_buf;
   std::ostream out_os;
   std::istream in_is;
-  EventCore::ev_id_type connect_event;
-  EventCore::ev_id_type kill_event;
+  ev_id_type connect_event;
+  ev_id_type kill_event;
+  ev_id_type tick_event;
   std::unique_ptr<Botan::Cipher_Mode> encryptor;
   std::unique_ptr<Botan::Cipher_Mode> decryptor;
   z_stream inflator;
@@ -74,22 +76,28 @@ private:
   std::size_t threshold;
   boost::asio::mutable_buffer read_buf;
 
-  std::array<std::array<std::vector<EventCore::ev_id_type>,
+  std::array<std::array<std::vector<ev_id_type>,
       mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
 
+
+  void tick(const sys::error_code& ec);
+  void start_tick(ev_id_type ev_id, const void *data);
+  void read_packet();
+  void write_packet();
   void read_header();
-  void read_packet(std::size_t len);
+  void read_body(std::size_t len);
   void connect_handler(const sys::error_code& ec,
       const ip::tcp::endpoint& ep);
   void write_handler(const sys::error_code& ec, std::size_t len);
   void header_handler(const sys::error_code& ec, std::size_t len);
-  void read_packet_handler(const sys::error_code& ec, std::size_t len,
-      int32_t packet_len);
-  void encryption_begin_handler(EventCore::ev_id_type ev_id, const void* data);
-  void enable_encryption(EventCore::ev_id_type ev_id, const void* data);
-  void enable_compression(EventCore::ev_id_type ev_id, const void* data);
-  void transition_state(EventCore::ev_id_type ev_id, const void* data);
-  void login_success(EventCore::ev_id_type ev_id, const void* data);
+  void body_handler(const sys::error_code& ec, std::size_t len,
+      int32_t body_len);
+  void encryption_begin_handler(ev_id_type ev_id, const void* data);
+  void signal_handler(const sys::error_code& ec, int sig);
+  void enable_encryption(ev_id_type ev_id, const void* data);
+  void enable_compression(ev_id_type ev_id, const void* data);
+  void transition_state(ev_id_type ev_id, const void* data);
+  void login_success(ev_id_type ev_id, const void* data);
 };
 
 } // namespace rkr

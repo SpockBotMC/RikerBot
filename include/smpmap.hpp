@@ -10,7 +10,7 @@
 #include <boost/functional/hash.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
 
-#include <minecraft_protocol.hpp>
+#include "minecraft_protocol.hpp"
 
 namespace rkr {
 

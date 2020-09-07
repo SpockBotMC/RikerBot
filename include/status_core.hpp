@@ -3,6 +3,8 @@
 
 #include "plugin_loader.hpp"
 #include "plugin_base.hpp"
+#include "event_core.hpp"
+#include "io_core.hpp"
 
 namespace rkr {
 
@@ -17,6 +19,11 @@ struct look_type {
   float pitch;
 };
 
+struct position_update_type {
+  position_type position;
+  look_type look;
+};
+
 class StatusCore : public PluginBase {
 public:
   position_type position;
@@ -26,6 +33,14 @@ public:
   StatusCore(rkr::PluginLoader& ploader, bool ownership = false);
 
 private:
+  EventCore* ev;
+  IOCore* io;
+  ev_id_type status_position_update;
+  ev_id_type status_spawn;
+  cb_id_type spawn_cb;
+  void handle_spawn(ev_id_type ev_id, const void* data);
+  void handle_ppl(ev_id_type ev_id, const void* data);
+  void handle_tick(ev_id_type ev_id, const void* data);
 };
 
 

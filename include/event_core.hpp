@@ -16,20 +16,19 @@
 
 namespace rkr {
 
+typedef std::uint64_t ev_id_type;
+typedef std::uint64_t cb_id_type;
+typedef std::function<void(ev_id_type, const void*)> event_cb;
+
 class EventCore : public PluginBase {
 public:
-  typedef std::uint64_t ev_id_type;
-  typedef std::uint64_t cb_id_type;
-  typedef std::function<void(ev_id_type, const void*)> event_cb;
-
   EventCore(rkr::PluginLoader& ploader, bool ownership = false);
   ev_id_type register_event(std::string event_name);
 
   cb_id_type register_callback(ev_id_type event_id, event_cb cb);
   cb_id_type register_callback(ev_id_type event_id, PyObject *cb);
-
-  void register_callback(std::string event_name, event_cb cb);
-  void register_callback(std::string event_name, PyObject *cb);
+  cb_id_type register_callback(std::string event_name, event_cb cb);
+  cb_id_type register_callback(std::string event_name, PyObject *cb);
 
   int unregister_callback(ev_id_type event_id, cb_id_type cb_id);
 
@@ -119,6 +118,7 @@ private:
     }
 
   private:
+    ev_id_type executing_event;
     cb_id_type next_callback_id;
     std::vector<cb_id_type> free_ids;
     std::vector<std::pair<cb_id_type, event_cb>> event_cbs;

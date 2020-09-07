@@ -19,9 +19,9 @@ public:
       std::int32_t, 3>>& positions);
 
   private:
-  void chunk_update(EventCore::ev_id_type ev_id, const void* data);
-  void chunk_unload(EventCore::ev_id_type ev_id, const void* data);
-  void multiblock_change(EventCore::ev_id_type ev_id, const void* data);
+  void chunk_update(ev_id_type ev_id, const void* data);
+  void chunk_unload(ev_id_type ev_id, const void* data);
+  void multiblock_change(ev_id_type ev_id, const void* data);
 };
 
 

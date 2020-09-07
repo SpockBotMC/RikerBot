@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <chrono>
 #include <botan/system_rng.h>
 #include <botan/pubkey.h>
 #include <botan/data_src.h>
@@ -17,18 +18,16 @@
 #include <boost/log/trivial.hpp>
 
 #include "datautils.hpp"
-#include "signal.hpp"
 #include "io_core.hpp"
 
 
 namespace rkr {
 
 IOCore::IOCore(PluginLoader& ploader, bool ownership) :
-    PluginBase("rkr::IOCore *"), kill(0), state(mcd::HANDSHAKING),
-    compressed(false), encrypted(false), sock(ctx), rslv(ctx),
-    out_os(&out_buf), in_is(&in_buf) {
+    PluginBase("rkr::IOCore *"), sock(ctx), rslv(ctx),
+    tick_timer(ctx, std::chrono::milliseconds(50)), out_os(&out_buf),
+    in_is(&in_buf) {
 
-  set_signal_handlers();
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
   Botan::system_rng().randomize(shared_secret, std::size(shared_secret));
 
@@ -47,26 +46,22 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
   ev = static_cast<EventCore*>(ploader.require("Event"));
   connect_event = ev->register_event("io_connect");
   kill_event = ev->register_event("kill");
+  tick_event = ev->register_event("tick");
 
   ev->register_callback("ServerboundSetProtocol",
-      [&](EventCore::ev_id_type ev_id, const void* data) {
-      transition_state(ev_id, data);});
+      [&](ev_id_type id, const void* p) {transition_state(id, p);});
 
   ev->register_callback("ClientboundEncryptionBegin",
-      [&](EventCore::ev_id_type ev_id, const void* data) {
-      encryption_begin_handler(ev_id, data);});
+      [&](ev_id_type id, const void* p) {encryption_begin_handler(id, p);});
 
   ev->register_callback("ServerboundEncryptionBegin",
-      [&](EventCore::ev_id_type ev_id, const void* data) {
-      enable_encryption(ev_id, data);});
+      [&](ev_id_type id, const void* p) {enable_encryption(id, p);});
 
   ev->register_callback("ClientboundCompress",
-      [&](EventCore::ev_id_type ev_id, const void* data) {
-      enable_compression(ev_id, data);});
+      [&](ev_id_type id, const void* p) {enable_compression(id, p);});
 
   ev->register_callback("ClientboundSuccess",
-      [&](EventCore::ev_id_type ev_id, const void* data) {
-      login_success(ev_id, data);});
+      [&](ev_id_type id, const void* p) {login_success(id, p);});
 
   for(int state_itr = 0; state_itr < mcd::STATE_MAX; state_itr++) {
     for(int dir_itr = 0; dir_itr < mcd::DIRECTION_MAX; dir_itr++) {
@@ -79,27 +74,52 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
   }
 }
 
-void IOCore::run() {
-  while(!kill) {
-    ctx.restart();
-    ctx.run();
-    if(out_buf.size())
-      net::async_write(sock, out_buf.data(), [&](const sys::error_code& ec,
-          std::size_t len) {write_handler(ec, len);});
-    // Last packet was so small that we already have data in the in_buf
-    if(in_buf.size())
-      read_header();
-    else {
-      // 5 bytes is the maximum size of the packet length header, but it's
-      // possible for an entire packet to be shorter than that. So we prepare
-      // a 5 byte buffer then use read_some to read however many bytes come.
-      read_buf = in_buf.prepare(5);
-      sock.async_read_some(read_buf, [&](const sys::error_code& ec,
-          std::size_t len) {header_handler(ec, len);});
-    }
-    if(signal_fired)
-      kill = true;
+void IOCore::tick(const sys::error_code& ec) {
+  ev->emit(tick_event);
+  tick_timer.async_wait([&](const sys::error_code& ec) {tick(ec);});
+}
+
+void IOCore::start_tick(ev_id_type ev_id, const void* data) {
+  tick_timer.async_wait([&](const sys::error_code& ec) {tick(ec);});
+}
+
+void IOCore::read_packet() {
+  if(in_buf.size()) {
+    read_header();
+  } else {
+    // 5 bytes is the maximum size of the packet length header, but it's
+    // possible for an entire packet to be shorter than that. So we prepare
+    // a 5 byte buffer then use read_some to read however many bytes come.
+    read_buf = in_buf.prepare(5);
+    sock.async_read_some(read_buf, [&](const sys::error_code& ec,
+        std::size_t len) {header_handler(ec, len);});
   }
+}
+
+void IOCore::write_packet() {
+  if(!ongoing_write) {
+    ongoing_write = true;
+    net::async_write(sock, out_buf.data(), [&](const sys::error_code& ec,
+        std::size_t len) {write_handler(ec, len);});
+  }
+}
+
+void IOCore::signal_handler(const sys::error_code& ec, int sig) {
+  if(!ec) {
+    BOOST_LOG_TRIVIAL(debug) << "Signal called, stopping";
+    ctx.stop();
+  } else {
+    BOOST_LOG_TRIVIAL(fatal) << "Error in signal handler: " << ec.message();
+    exit(-1);
+  }
+}
+
+void IOCore::run() {
+  read_packet();
+  boost::asio::signal_set signals(ctx, SIGINT, SIGTERM);
+  signals.async_wait(
+      [&](const sys::error_code& ec, int sig) {signal_handler(ec, sig);});
+  ctx.run();
   ev->emit(kill_event);
 }
 
@@ -165,6 +185,8 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
 
   ev->emit(packet_event_ids[state][mcd::SERVERBOUND][packet.packet_id],
       static_cast<const void*>(&packet), "mcd::" + packet.name + " *");
+
+  write_packet();
 }
 
 void IOCore::connect(const std::string& host, const std::string& service) {
@@ -193,6 +215,11 @@ void IOCore::write_handler(const sys::error_code& ec, std::size_t len) {
     exit(-1);
   }
   out_buf.consume(len);
+  if(out_buf.size())
+    net::async_write(sock, out_buf.data(), [&](const sys::error_code& ec,
+        std::size_t len) {write_handler(ec, len);});
+  else
+    ongoing_write = false;
 }
 
 void IOCore::read_header() {
@@ -208,12 +235,12 @@ void IOCore::read_header() {
   } else {
     auto varint = mcd::dec_varint(in_is);
     if(in_buf.size() >= static_cast<std::uint64_t>(varint)) {
-      read_packet(varint);
+      read_body(varint);
       return;
     }
     read_buf = in_buf.prepare(varint - in_buf.size());
     net::async_read(sock, read_buf, [&, varint](const sys::error_code& ec,
-        std::size_t len) {read_packet_handler(ec, len, varint);});
+        std::size_t len) {body_handler(ec, len, varint);});
   }
 }
 
@@ -228,8 +255,8 @@ void IOCore::header_handler(const sys::error_code& ec, std::size_t len) {
   read_header();
 }
 
-void IOCore::read_packet_handler(const sys::error_code& ec, std::size_t len,
-    int32_t packet_len) {
+void IOCore::body_handler(const sys::error_code& ec, std::size_t len,
+    int32_t body_len) {
   if(ec.failed()) {
     BOOST_LOG_TRIVIAL(fatal) << ec.message();
     exit(-1);
@@ -237,10 +264,10 @@ void IOCore::read_packet_handler(const sys::error_code& ec, std::size_t len,
   if(encrypted)
     decryptor->process(static_cast<std::uint8_t*>(read_buf.data()), len);
   in_buf.commit(len);
-  read_packet(packet_len);
+  read_body(body_len);
 }
 
-void IOCore::read_packet(size_t len) {
+void IOCore::read_body(size_t len) {
   static std::istream pak_is(&pak_buf);
   std::memcpy(pak_buf.prepare(len).data(), in_buf.data().data(), len);
   pak_buf.commit(len);
@@ -285,9 +312,11 @@ void IOCore::read_packet(size_t len) {
 
   ev->emit(packet_event_ids[state][mcd::CLIENTBOUND][packet->packet_id],
       static_cast<const void*>(packet.get()), "mcd::" + packet->name + " *");
+
+  read_packet();
 }
 
-void IOCore::encryption_begin_handler(EventCore::ev_id_type ev_id,
+void IOCore::encryption_begin_handler(ev_id_type ev_id,
     const void* data) {
   auto packet = static_cast<const mcd::ClientboundEncryptionBegin*>(data);
   auto mem = Botan::DataSource_Memory(reinterpret_cast<const std::uint8_t*>(
@@ -308,7 +337,7 @@ void IOCore::encryption_begin_handler(EventCore::ev_id_type ev_id,
   delete key;
 }
 
-void IOCore::enable_encryption(EventCore::ev_id_type ev_id, const void* data) {
+void IOCore::enable_encryption(ev_id_type ev_id, const void* data) {
   encryptor->clear();
   encryptor->set_key(shared_secret, std::size(shared_secret));
   encryptor->start(shared_secret, std::size(shared_secret));
@@ -318,20 +347,20 @@ void IOCore::enable_encryption(EventCore::ev_id_type ev_id, const void* data) {
   encrypted = true;
 }
 
-void IOCore::enable_compression(EventCore::ev_id_type ev_id,
+void IOCore::enable_compression(ev_id_type ev_id,
     const void* data) {
   auto packet = static_cast<const mcd::ClientboundCompress*>(data);
   threshold = packet->threshold;
   compressed = true;
 }
 
-void IOCore::transition_state(EventCore::ev_id_type ev_id,
+void IOCore::transition_state(ev_id_type ev_id,
   const void* data) {
   auto packet = static_cast<const mcd::ServerboundSetProtocol*>(data);
   state = static_cast<mcd::packet_state>(packet->nextState);
 }
 
-void IOCore::login_success(EventCore::ev_id_type ev_id,
+void IOCore::login_success(ev_id_type ev_id,
   const void* data) {
   state = mcd::PLAY;
 }

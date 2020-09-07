@@ -18,7 +18,7 @@ include(UseSWIG)
 
 set(INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${Python3_INCLUDE_DIRS} ${NET}
     ${BOTAN} include)
-set(OPTIONS -Wall -Wpedantic)
+set(OPTIONS -Wall -Wpedantic -DBOOST_ASIO_DISABLE_CONCEPTS)
 
 set(RIKER_DEPENDS "")
 
@@ -122,14 +122,14 @@ swig_add_library(IOCore
   LANGUAGE python
   OUTPUT_DIR ${RKR_PLUGIN_DIR}
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/IOCore.i src/io_core.cpp src/plugin_loader.cpp src/signal.cpp
+  SOURCES swig/IOCore.i src/io_core.cpp src/plugin_loader.cpp
       src/plugin_base.cpp src/event_core.cpp src/datautils.cpp ${PROTO_IMPL}
 )
 set_target_properties(IOCore PROPERTIES OUTPUT_NAME CIOCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
     LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
 target_compile_features(IOCore PRIVATE cxx_std_20)
-target_compile_options(IOCore PRIVATE ${OPTIONS} -DBOOST_ASIO_DISABLE_CONCEPTS)
+target_compile_options(IOCore PRIVATE ${OPTIONS})
 target_include_directories(IOCore PRIVATE ${INCLUDES})
 target_link_libraries(IOCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
 add_dependencies(IOCore proto_gen)
@@ -163,8 +163,8 @@ swig_add_library(WorldCore
   OUTPUT_DIR ${RKR_PLUGIN_DIR}
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
   SOURCES swig/WorldCore.i src/world_core.cpp src/smpmap.cpp
-      src/plugin_loader.cpp src/plugin_base.cpp src/event_core.cpp
-      src/datautils.cpp
+      src/plugin_loader.cpp src/plugin_base.cpp src/datautils.cpp
+      src/event_core.cpp
 )
 set_target_properties(WorldCore PROPERTIES OUTPUT_NAME CWorldCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
@@ -181,8 +181,9 @@ swig_add_library(StatusCore
   LANGUAGE python
   OUTPUT_DIR ${RKR_PLUGIN_DIR}
   OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/StatusCore.i src/status_core.cpp src/plugin_loader.cpp
-      src/plugin_base.cpp
+  SOURCES swig/StatusCore.i src/status_core.cpp src/plugin_base.cpp
+      src/plugin_loader.cpp src/event_core.cpp src/io_core.cpp ${PROTO_IMPL}
+      src/datautils.cpp
 )
 set_target_properties(StatusCore PROPERTIES OUTPUT_NAME CStatusCore
     SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
@@ -190,6 +191,7 @@ set_target_properties(StatusCore PROPERTIES OUTPUT_NAME CStatusCore
 target_compile_features(StatusCore PRIVATE cxx_std_20)
 target_compile_options(StatusCore PRIVATE ${OPTIONS})
 target_include_directories(StatusCore PRIVATE ${INCLUDES})
+target_link_libraries(StatusCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
 list(APPEND RIKER_DEPENDS StatusCore)
 
 
