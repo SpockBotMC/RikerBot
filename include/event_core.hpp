@@ -30,7 +30,7 @@ public:
   cb_id_type register_callback(std::string event_name, event_cb cb);
   cb_id_type register_callback(std::string event_name, PyObject *cb);
 
-  int unregister_callback(ev_id_type event_id, cb_id_type cb_id);
+  void unregister_callback(ev_id_type event_id, cb_id_type cb_id);
 
   void emit(ev_id_type event_id);
   void emit(ev_id_type event_id, const void* data);
@@ -44,6 +44,10 @@ private:
   class channel;
   std::unordered_map<std::string, ev_id_type> event_map;
   std::vector<channel> event_channels;
+  std::unordered_map<ev_id_type, std::vector<cb_id_type>> to_remove;
+  std::vector<ev_id_type> event_stack;
+
+  void clean_callbacks(ev_id_type event_id);
 
   class channel {
   public:

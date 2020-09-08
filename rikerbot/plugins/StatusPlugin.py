@@ -1,4 +1,3 @@
-from pkg_resources import require
 from rikerbot.PluginBase import CPluginBase, pl_announce
 from .CStatusCore import StatusCore
 
