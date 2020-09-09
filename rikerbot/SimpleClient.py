@@ -11,15 +11,15 @@ class SimpleClient:
     if tokens_path is None:
       self.tokens_path = os.path.join(os.getcwd(), "token")
 
-    ploader = rikerbot.PluginLoader()
+    self.ploader = rikerbot.PluginLoader()
     plugins = rikerbot.default_plugins + extra_plugins
-    for failed in rikerbot.solve_dependencies(ploader, plugins, settings):
+    for failed in rikerbot.solve_dependencies(self.ploader, plugins, settings):
       rikerbot.logger.warning(f"Failed to meet plugin dependency: {failed}")
 
-    ev = ploader.require('Event')
+    ev = self.ploader.require('Event')
     ev.register_callback('auth_login_success', self.write_token)
-    self._start = ploader.require('Start')
-    self.auth = ploader.require('Auth')
+    self._start = self.ploader.require('Start')
+    self.auth = self.ploader.require('Auth')
 
     self.online_mode = online_mode
 
@@ -36,6 +36,8 @@ class SimpleClient:
     else:
       self.auth.username = username if username else input("Username: ")
 
+  def __del__(self):
+    rikerbot.delete_PluginLoader(self.ploader)
 
   def start(self, host = "localhost", port = 25565):
     self._start(host, port)

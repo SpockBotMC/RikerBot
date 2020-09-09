@@ -28,7 +28,7 @@ from .plugins.StatusPlugin import StatusPlugin
 
 from .DependencySolver import solve_dependencies
 from .PluginBase import PluginBase, pl_announce
-from .PluginLoader import PluginLoader
+from .PluginLoader import PluginLoader, make_PluginLoader, delete_PluginLoader
 
 default_plugins = [
   ('start', StartPlugin),

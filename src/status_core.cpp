@@ -14,7 +14,7 @@ StatusCore::StatusCore(PluginLoader& ploader, bool ownership) :
   status_position_update = ev->register_event("status_position_update");
   status_spawn = ev->register_event("status_spawn");
 
-  spawn_cb = ev->register_callback("ClientboundPosition",
+  spawn_cb = ev->register_callback("status_position_update",
       [&](ev_id_type id, const void* p) {handle_spawn(id, p);});
 
   ev->register_callback("ClientboundPosition",
@@ -41,6 +41,9 @@ void StatusCore::handle_ppl(ev_id_type ev_id, const void* data) {
     .position = position,
     .look = look
   };
+  mcd::ServerboundTeleportConfirm resp;
+  resp.teleportId = packet->teleportId;
+  io->encode_packet(resp);
   ev->emit(status_position_update, &update, "rkr::position_update_type *");
 }
 

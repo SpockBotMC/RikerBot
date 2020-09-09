@@ -53,7 +53,7 @@ private:
   public:
     ev_id_type event_id;
 
-    channel(ev_id_type id) : event_id(id), next_callback_id(0) {}
+    channel(ev_id_type id) : event_id(id) {}
 
     cb_id_type subscribe(event_cb cb) {
       cb_id_type cb_id = get_free_id();
@@ -122,8 +122,7 @@ private:
     }
 
   private:
-    ev_id_type executing_event;
-    cb_id_type next_callback_id;
+    cb_id_type next_callback_id = 0;
     std::vector<cb_id_type> free_ids;
     std::vector<std::pair<cb_id_type, event_cb>> event_cbs;
     std::vector<std::pair<cb_id_type, PyObject*>> py_cbs;

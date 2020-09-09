@@ -24,9 +24,8 @@
 namespace rkr {
 
 IOCore::IOCore(PluginLoader& ploader, bool ownership) :
-    PluginBase("rkr::IOCore *"), sock(ctx), rslv(ctx),
-    tick_timer(ctx, std::chrono::milliseconds(50)), out_os(&out_buf),
-    in_is(&in_buf) {
+    PluginBase("rkr::IOCore *"), sock(ctx), rslv(ctx), tick_timer(ctx),
+    out_os(&out_buf), in_is(&in_buf) {
 
   in_is.exceptions(in_is.eofbit | in_is.badbit | in_is.failbit);
   Botan::system_rng().randomize(shared_secret, std::size(shared_secret));
@@ -51,7 +50,7 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
   ev->register_callback("ServerboundSetProtocol",
       [&](ev_id_type id, const void* p) {transition_state(id, p);});
 
-  ev->register_callback("ClientboundEncryptionBegin",
+  ev->register_callback("auth_session_success",
       [&](ev_id_type id, const void* p) {encryption_begin_handler(id, p);});
 
   ev->register_callback("ServerboundEncryptionBegin",
@@ -62,6 +61,9 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
 
   ev->register_callback("ClientboundSuccess",
       [&](ev_id_type id, const void* p) {login_success(id, p);});
+
+  ev->register_callback("status_spawn",
+      [&](ev_id_type id, const void* p) {tick(sys::error_code());});
 
   for(int state_itr = 0; state_itr < mcd::STATE_MAX; state_itr++) {
     for(int dir_itr = 0; dir_itr < mcd::DIRECTION_MAX; dir_itr++) {
@@ -76,10 +78,7 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
 
 void IOCore::tick(const sys::error_code& ec) {
   ev->emit(tick_event);
-  tick_timer.async_wait([&](const sys::error_code& ec) {tick(ec);});
-}
-
-void IOCore::start_tick(ev_id_type ev_id, const void* data) {
+  tick_timer.expires_after(std::chrono::milliseconds(50));
   tick_timer.async_wait([&](const sys::error_code& ec) {tick(ec);});
 }
 
@@ -184,7 +183,7 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
   write_buf.consume(write_size);
 
   ev->emit(packet_event_ids[state][mcd::SERVERBOUND][packet.packet_id],
-      static_cast<const void*>(&packet), "mcd::" + packet.name + " *");
+      static_cast<const void*>(&packet), "mcd::" + packet.packet_name + " *");
 
   write_packet();
 }
@@ -304,14 +303,15 @@ void IOCore::read_body(size_t len) {
   // Needs to be exception based, otherwise reads can cause infinite loops
   if(pak_is.eof() || pak_is.fail() || pak_buf.size()) {
     BOOST_LOG_TRIVIAL(fatal) << "Failed to decode packet, Suspect ID: "
-        << packet_id << " Suspect name: " << packet->name;
+        << packet_id << " Suspect name: " << packet->packet_name;
     BOOST_LOG_TRIVIAL(fatal) << "EOF: " << pak_is.eof() << " Fail: "
         << pak_is.fail() << " Size: " << pak_buf.size();
     exit(-1);
   }
 
   ev->emit(packet_event_ids[state][mcd::CLIENTBOUND][packet->packet_id],
-      static_cast<const void*>(packet.get()), "mcd::" + packet->name + " *");
+      static_cast<const void*>(packet.get()), "mcd::" +
+      packet->packet_name + " *");
 
   read_packet();
 }

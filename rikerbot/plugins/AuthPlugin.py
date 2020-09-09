@@ -77,7 +77,7 @@ class AuthPlugin(PluginBase):
     data = json.dumps({
       'accessToken': self.core.ygg.access_token,
       'selectedProfile': self.core.ygg.selected_profile['id'],
-      'serverId':format(int.from_bytes(digest, 'big', signed = True), 'x')
+      'serverId': format(int.from_bytes(digest, 'big', signed = True), 'x')
     }).encode('utf-8')
     url = 'https://sessionserver.mojang.com/session/minecraft/join'
     req = request.Request(url, data, {'Content-Type': 'application/json'})
@@ -90,4 +90,5 @@ class AuthPlugin(PluginBase):
       logger.warning(rep)
     else:
       logger.info("Successful Session Auth")
-      self.event.emit(self.session_auth)
+      self.event.emit(self.session_auth, packet,
+          "mcd::ClientboundEncryptionBegin *")
