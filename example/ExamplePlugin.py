@@ -4,10 +4,7 @@
 from rikerbot import PluginBase, pl_announce, proto, logger
 
 class ExampleCore:
-  def __init__(self, greeting_string = None):
-    if greeting_string is None:
-      self.greeting_string = "Hello, I am RikerBot"
-    else:
+  def __init__(self, greeting_string = "Hello, I am RikerBot"):
       self.greeting_string = greeting_string
 
 # The pl_announce decorator tells the plugin loader about any interfaces

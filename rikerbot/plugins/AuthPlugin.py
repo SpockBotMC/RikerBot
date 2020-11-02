@@ -72,7 +72,9 @@ class AuthPlugin(PluginBase):
     self.session_auth = self.event.register_event("auth_session_success")
 
   def handle_session_auth(self, event_id, packet):
-    sev_id = packet.serverId.encode('ascii') # Should be blank
+    # Server ID is blank for Notchian servers, but some custom servers sitll
+    # use it
+    sev_id = packet.serverId.encode('ascii')
     digest = sha1(sev_id + self.io.shared_secret + packet.publicKey).digest()
     data = json.dumps({
       'accessToken': self.core.ygg.access_token,

@@ -37,13 +37,13 @@ void StatusCore::handle_ppl(ev_id_type ev_id, const void* data) {
   flags&0x04 ? position.z += packet->z : position.z = packet->z;
   flags&0x08 ? look.yaw += packet->yaw : look.yaw = packet->yaw;
   flags&0x10 ? look.pitch += packet->pitch : look.pitch = packet->pitch;
+  mcd::ServerboundTeleportConfirm resp;
+  resp.teleportId = packet->teleportId;
+  io->encode_packet(resp);
   position_update_type update = {
     .position = position,
     .look = look
   };
-  mcd::ServerboundTeleportConfirm resp;
-  resp.teleportId = packet->teleportId;
-  io->encode_packet(resp);
   ev->emit(status_position_update, &update, "rkr::position_update_type *");
 }
 

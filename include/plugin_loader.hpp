@@ -14,12 +14,12 @@ namespace rkr {
 
 class PluginLoader {
 public:
-  PluginBase* require(std::string class_name);
-  PyObject* py_require(std::string class_name);
+  PluginBase* require(const std::string& class_name);
+  PyObject* py_require(const std::string& class_name);
 
-  void provide(std::string class_name, rkr::PluginBase* class_ptr,
+  void provide(const std::string& class_name, rkr::PluginBase* class_ptr,
       bool own = false);
-  void provide(std::string class_name, PyObject* pyo);
+  void provide(const std::string& class_name, PyObject* pyo);
 
 private:
   std::vector<std::unique_ptr<PluginBase>> owned;

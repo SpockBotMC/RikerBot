@@ -266,7 +266,7 @@ void MCSlot::encode(std::ostream &dest) const {
   if(present) {
     enc_varint(dest, item_id);
     enc_byte(dest, item_count);
-    if(nbt_data.has_value())
+    if(nbt_data)
       nbt_data.value().encode_full(dest);
     else
       enc_byte(dest, nbt::TAG_END);

@@ -44,8 +44,7 @@ def make_PluginLoader():
 def delete_PluginLoader(pl):
   if isinstance(pl, int):
     pl = next(filter(lambda x: x.pl_id == pl, plugin_loader_list), None)
-  if pl in plugin_loader_list:
-    plugin_loader_list.remove(pl)
-    return pl.pl_id
-  else:
+  if not pl or pl not in plugin_loader_list:
     return None
+  plugin_loader_list.remove(pl)
+  return pl.pl_id

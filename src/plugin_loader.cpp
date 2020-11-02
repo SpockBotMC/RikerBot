@@ -3,13 +3,13 @@
 
 namespace rkr {
 
-PluginBase* PluginLoader::require(std::string class_name) {
+PluginBase* PluginLoader::require(const std::string& class_name) {
   if(class_map.contains(class_name))
     return class_map[class_name];
   return nullptr;
 }
 
-PyObject* PluginLoader::py_require(std::string class_name) {
+PyObject* PluginLoader::py_require(const std::string& class_name) {
   if(class_map.contains(class_name)) {
     PluginBase* pl = class_map[class_name];
     if(pl->type_query)
@@ -24,14 +24,14 @@ PyObject* PluginLoader::py_require(std::string class_name) {
   Py_RETURN_NONE;
 }
 
-void PluginLoader::provide(std::string class_name,
+void PluginLoader::provide(const std::string& class_name,
     PluginBase* class_ptr, bool own) {
   if(own)
     owned.emplace_back(class_ptr);
   class_map[class_name] = class_ptr;
 }
 
-void PluginLoader::provide(std::string class_name, PyObject* pyo) {
+void PluginLoader::provide(const std::string& class_name, PyObject* pyo) {
   Py_INCREF(pyo);
   if(pyo_map.contains(class_name))
     Py_DECREF(pyo_map[class_name]);
