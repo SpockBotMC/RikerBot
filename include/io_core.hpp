@@ -61,28 +61,33 @@ private:
   ip::tcp::socket sock;
   ip::tcp::resolver rslv;
   boost::asio::steady_timer tick_timer;
-  boost::asio::streambuf out_buf;
-  boost::asio::streambuf in_buf;
-  boost::asio::streambuf pak_buf;
-  std::ostream out_os;
-  std::istream in_is;
+
+  std::deque<boost::asio::streambuf> write_bufs;
+  std::deque<boost::asio::const_buffer> out_bufs;
+
+  boost::asio::mutable_buffer in_buf;
+  boost::asio::streambuf read_buf;
+  std::istream read_is;
+
   ev_id_type connect_event;
   ev_id_type kill_event;
   ev_id_type tick_event;
+
   std::unique_ptr<Botan::Cipher_Mode> encryptor;
   std::unique_ptr<Botan::Cipher_Mode> decryptor;
+
   z_stream inflator;
   z_stream deflator;
   std::size_t threshold;
-  boost::asio::mutable_buffer read_buf;
 
   std::array<std::array<std::vector<ev_id_type>,
       mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
 
 
-  void tick(const sys::error_code& ec);
+  void tick();
   void read_packet();
-  void write_packet();
+  void write_packet(const boost::asio::streambuf& header,
+    const boost::asio::streambuf& body);
   void read_header();
   void read_body(std::size_t len);
   void connect_handler(const sys::error_code& ec,
