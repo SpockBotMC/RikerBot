@@ -15,7 +15,8 @@
 namespace rkr {
 
 typedef std::uint16_t block_id;
-typedef std::pair<std::int64_t, std::int64_t> chunk_coord;
+typedef std::pair<std::int64_t, std::int64_t> ChunkCoord;
+typedef mcd::mc_position BlockCoord;
 
 // This is specifically for 1.16.2+ SMPMap format
 class SMPMap;
@@ -49,8 +50,10 @@ class ChunkColumn {
   void update(std::uint16_t bitmask, std::istream& data);
   void update(std::uint8_t sec_coord, const std::vector<std::int64_t>&
       records);
+
+  block_id get(std::int32_t x, std::int32_t y, std::int32_t z);
   std::vector<std::pair<block_id, std::int32_t>> get(
-      std::vector<std::array<std::int32_t, 4>>& positions);
+      std::vector<std::array<std::int32_t, 4>>& coords);
 };
 
 class SMPMap {
@@ -59,12 +62,15 @@ public:
   void update(const mcd::ClientboundMultiBlockChange& packet);
   void unload(const mcd::ClientboundUnloadChunk& packet);
 
-  std::vector<block_id> get(const std::vector<mcd::mc_position>& positions);
+  block_id get(const rkr::BlockCoord& coord);
+  block_id get(std::int32_t x, std::int32_t y, std::int32_t z);
+
+  std::vector<block_id> get(const std::vector<rkr::BlockCoord>& coords);
   std::vector<block_id> get(const std::vector<std::array<std::int32_t, 3>>&
-      positions);
+      coords);
 
 private:
-  std::unordered_map<chunk_coord, ChunkColumn, boost::hash<chunk_coord>>
+  std::unordered_map<ChunkCoord, ChunkColumn, boost::hash<ChunkCoord>>
       chunks;
 
 };

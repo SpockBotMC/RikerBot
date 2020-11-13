@@ -13,15 +13,17 @@ public:
 
   WorldCore(rkr::PluginLoader& ploader, bool ownership = false);
 
+  rkr::block_id get(const rkr::BlockCoord& coord);
+  rkr::block_id get(std::int32_t x, std::int32_t y, std::int32_t z);
   std::vector<rkr::block_id> get(const std::vector<mcd::mc_position>&
       positions);
   std::vector<rkr::block_id> get(const std::vector<std::array<
       std::int32_t, 3>>& positions);
 
 private:
-  void chunk_update(ev_id_type ev_id, const void* data);
-  void chunk_unload(ev_id_type ev_id, const void* data);
-  void multiblock_change(ev_id_type ev_id, const void* data);
+  void chunk_update(const void* data);
+  void chunk_unload(const void* data);
+  void multiblock_change(const void* data);
 };
 
 

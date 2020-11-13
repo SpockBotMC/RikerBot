@@ -23,12 +23,12 @@ typedef std::function<void(ev_id_type, const void*)> event_cb;
 class EventCore : public PluginBase {
 public:
   EventCore(rkr::PluginLoader& ploader, bool ownership = false);
-  ev_id_type register_event(std::string event_name);
+  ev_id_type register_event(const std::string& event_name);
 
   cb_id_type register_callback(ev_id_type event_id, event_cb cb);
   cb_id_type register_callback(ev_id_type event_id, PyObject *cb);
-  cb_id_type register_callback(std::string event_name, event_cb cb);
-  cb_id_type register_callback(std::string event_name, PyObject *cb);
+  cb_id_type register_callback(const std::string& event_name, event_cb cb);
+  cb_id_type register_callback(const std::string& event_name, PyObject *cb);
 
   void unregister_callback(ev_id_type event_id, cb_id_type cb_id);
 

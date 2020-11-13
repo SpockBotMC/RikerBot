@@ -48,22 +48,22 @@ IOCore::IOCore(PluginLoader& ploader, bool ownership) :
   tick_event = ev->register_event("tick");
 
   ev->register_callback("ServerboundSetProtocol",
-      [&](ev_id_type id, const void* p) {transition_state(id, p);});
+      [&](ev_id_type, const void* data) {transition_state(data);});
 
   ev->register_callback("auth_session_success",
-      [&](ev_id_type id, const void* p) {encryption_begin_handler(id, p);});
+      [&](ev_id_type, const void* data) {encryption_begin_handler(data);});
 
   ev->register_callback("ServerboundEncryptionBegin",
-      [&](ev_id_type id, const void* p) {enable_encryption(id, p);});
+      [&](ev_id_type, const void* data) {enable_encryption(data);});
 
   ev->register_callback("ClientboundCompress",
-      [&](ev_id_type id, const void* p) {enable_compression(id, p);});
+      [&](ev_id_type, const void* data) {enable_compression(data);});
 
   ev->register_callback("ClientboundSuccess",
-      [&](ev_id_type id, const void* p) {login_success(id, p);});
+      [&](ev_id_type, const void* data) {login_success(data);});
 
   ev->register_callback("status_spawn",
-      [&](ev_id_type id, const void* p) {tick(sys::error_code());});
+      [&](ev_id_type, const void* data) {tick(sys::error_code());});
 
   for(int state_itr = 0; state_itr < mcd::STATE_MAX; state_itr++) {
     for(int dir_itr = 0; dir_itr < mcd::DIRECTION_MAX; dir_itr++) {
@@ -316,8 +316,7 @@ void IOCore::read_body(size_t len) {
   read_packet();
 }
 
-void IOCore::encryption_begin_handler(ev_id_type ev_id,
-    const void* data) {
+void IOCore::encryption_begin_handler(const void* data) {
   auto packet = static_cast<const mcd::ClientboundEncryptionBegin*>(data);
   auto mem = Botan::DataSource_Memory(reinterpret_cast<const std::uint8_t*>(
       packet->publicKey.data()), packet->publicKey.size());
@@ -337,7 +336,7 @@ void IOCore::encryption_begin_handler(ev_id_type ev_id,
   delete key;
 }
 
-void IOCore::enable_encryption(ev_id_type ev_id, const void* data) {
+void IOCore::enable_encryption(const void* data) {
   encryptor->clear();
   encryptor->set_key(shared_secret, std::size(shared_secret));
   encryptor->start(shared_secret, std::size(shared_secret));
@@ -347,21 +346,17 @@ void IOCore::enable_encryption(ev_id_type ev_id, const void* data) {
   encrypted = true;
 }
 
-void IOCore::enable_compression(ev_id_type ev_id,
-    const void* data) {
-  auto packet = static_cast<const mcd::ClientboundCompress*>(data);
-  threshold = packet->threshold;
+void IOCore::enable_compression(const void* data) {
+  threshold = static_cast<const mcd::ClientboundCompress*>(data)->threshold;
   compressed = true;
 }
 
-void IOCore::transition_state(ev_id_type ev_id,
-  const void* data) {
+void IOCore::transition_state(const void* data) {
   auto packet = static_cast<const mcd::ServerboundSetProtocol*>(data);
   state = static_cast<mcd::packet_state>(packet->nextState);
 }
 
-void IOCore::login_success(ev_id_type ev_id,
-  const void* data) {
+void IOCore::login_success(const void* data) {
   state = mcd::PLAY;
 }
 

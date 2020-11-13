@@ -95,12 +95,22 @@ void ChunkColumn::update(std::uint8_t sec_coord,
   }
 }
 
+block_id ChunkColumn::get(std::int32_t x, std::int32_t y, std::int32_t z) {
+  auto section = sections[y >> 4];
+  if(section)
+    return section.value().get(x, y % 16, z);
+  else
+    return 0;
+}
+
 std::vector<std::pair<block_id, std::int32_t>> ChunkColumn::get(
     std::vector<std::array<std::int32_t, 4>>& positions) {
   std::vector<std::pair<block_id, std::int32_t>> ret(positions.size());
   for(int i = 0, end = positions.size(); i < end; i++) {
     auto pos = positions[i];
-    auto section = sections[pos[1] / 16];
+    auto section = sections[pos[1] >> 4];
+    // ToDo: Group all requests inside a given section together so we don't
+    // repeat this check
     if(section)
       ret[i] = {section.value().get(pos[0], pos[1] % 16, pos[2]), pos[3]};
     else
@@ -125,18 +135,25 @@ void SMPMap::unload(const mcd::ClientboundUnloadChunk& packet) {
   chunks.erase({packet.chunkX, packet.chunkZ});
 }
 
-std::vector<block_id> SMPMap::get(const std::vector<mcd::mc_position>&
-    positions) {
-  std::vector<block_id> ret(positions.size());
-  std::unordered_map<chunk_coord, std::vector<std::array<std::int32_t, 4>>,
-      boost::hash<chunk_coord>> map;
-  for(std::int32_t i = 0, end = positions.size(); i < end; i++) {
-    auto& pos = positions[i];
-    std::int32_t chunk_x = pos.x / 16;
-    std::int32_t x = pos.x % 16;
-    std::int32_t chunk_z = pos.z / 16;
-    std::int32_t z = pos.z % 16;
-    map[{chunk_x, chunk_z}].push_back({x, pos.y, z, i});
+block_id SMPMap::get(std::int32_t x, std::int32_t y, std::int32_t z) {
+  return get({x, y, z});
+}
+
+block_id SMPMap::get(const BlockCoord& coord) {
+    auto iter = chunks.find({coord.x >> 4, coord.z >> 4});
+    if(iter != chunks.end())
+      return iter->second.get(coord.x % 16, coord.y, coord.z % 16);
+    return 0;
+}
+
+std::vector<block_id> SMPMap::get(const std::vector<BlockCoord>& coords) {
+  std::vector<block_id> ret(coords.size());
+  std::unordered_map<ChunkCoord, std::vector<std::array<std::int32_t, 4>>,
+      boost::hash<ChunkCoord>> map;
+  for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
+    auto& block_coord = coords[i];
+    map[{block_coord.x >> 4, block_coord.z >> 4}].push_back({
+        block_coord.x % 16, block_coord.y, block_coord.z % 16, i});
   }
   for(auto& el : map) {
     if(chunks.contains(el.first)) {
@@ -152,17 +169,14 @@ std::vector<block_id> SMPMap::get(const std::vector<mcd::mc_position>&
 }
 
 std::vector<block_id> SMPMap::get(const std::vector<std::array<
-    std::int32_t, 3>>& positions) {
-  std::vector<block_id> ret(positions.size());
-  std::unordered_map<chunk_coord, std::vector<std::array<std::int32_t, 4>>,
-      boost::hash<chunk_coord>> map;
-  for(std::int32_t i = 0, end = positions.size(); i < end; i++) {
-    auto& pos = positions[i];
-    std::int32_t chunk_x = pos[0] / 16;
-    std::int32_t x = pos[0] % 16;
-    std::int32_t chunk_z = pos[2] / 16;
-    std::int32_t z = pos[2] % 16;
-    map[{chunk_x, chunk_z}].push_back({x, pos[1], z, i});
+    std::int32_t, 3>>& coords) {
+  std::vector<block_id> ret(coords.size());
+  std::unordered_map<ChunkCoord, std::vector<std::array<std::int32_t, 4>>,
+      boost::hash<ChunkCoord>> map;
+  for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
+    auto& block_coord = coords[i];
+    map[{block_coord[0] >> 4, block_coord[2] >> 4}].push_back({
+        block_coord[0] % 16, block_coord[1], block_coord[2] % 16, i});
   }
   for(auto& el : map) {
     if(chunks.contains(el.first)) {

@@ -8,7 +8,7 @@ EventCore::EventCore(PluginLoader& ploader, bool ownership) :
   ploader.provide("Event", this, ownership);
 }
 
-ev_id_type EventCore::register_event(std::string event_name) {
+ev_id_type EventCore::register_event(const std::string& event_name) {
   if(event_map.contains(event_name))
     return event_map[event_name];
   ev_id_type id = event_channels.size();
@@ -21,7 +21,8 @@ cb_id_type EventCore::register_callback(ev_id_type event_id, event_cb cb) {
   return event_channels[event_id].subscribe(cb);
 }
 
-cb_id_type EventCore::register_callback(std::string event_name, event_cb cb) {
+cb_id_type EventCore::register_callback(const std::string& event_name,
+    event_cb cb) {
   ev_id_type event_id = register_event(event_name);
   return event_channels[event_id].subscribe(cb);
 }
@@ -30,7 +31,8 @@ cb_id_type EventCore::register_callback(ev_id_type event_id, PyObject *cb) {
   return event_channels[event_id].subscribe(cb);
 }
 
-cb_id_type EventCore::register_callback(std::string event_name, PyObject *cb) {
+cb_id_type EventCore::register_callback(const std::string& event_name,
+    PyObject *cb) {
   ev_id_type event_id = register_event(event_name);
   return event_channels[event_id].subscribe(cb);
 }
@@ -74,7 +76,7 @@ void EventCore::emit(ev_id_type event_id, const void* data,
     clean_callbacks(event_id);
 }
 
-void EventCore::emit(ev_id_type event_id, PyObject *data) {
+void EventCore::emit(ev_id_type event_id, PyObject* data) {
   event_stack.push_back(event_id);
   event_channels[event_id].emit(const_cast<const void*>(
       static_cast<void*>(data)));

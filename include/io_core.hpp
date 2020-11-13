@@ -81,7 +81,6 @@ private:
 
 
   void tick(const sys::error_code& ec);
-  void start_tick(ev_id_type ev_id, const void *data);
   void read_packet();
   void write_packet();
   void read_header();
@@ -92,12 +91,12 @@ private:
   void header_handler(const sys::error_code& ec, std::size_t len);
   void body_handler(const sys::error_code& ec, std::size_t len,
       int32_t body_len);
-  void encryption_begin_handler(ev_id_type ev_id, const void* data);
+  void encryption_begin_handler(const void* data);
   void signal_handler(const sys::error_code& ec, int sig);
-  void enable_encryption(ev_id_type ev_id, const void* data);
-  void enable_compression(ev_id_type ev_id, const void* data);
-  void transition_state(ev_id_type ev_id, const void* data);
-  void login_success(ev_id_type ev_id, const void* data);
+  void enable_encryption(const void* data);
+  void enable_compression(const void* data);
+  void transition_state(const void* data);
+  void login_success(const void* data);
 };
 
 } // namespace rkr

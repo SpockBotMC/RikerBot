@@ -9,7 +9,15 @@
 %include <std_array.i>
 
 namespace rkr {
+
 typedef uint16_t block_id;
+
+struct BlockCoord {
+  int32_t x;
+  int32_t y;
+  int32_t z;
+};
+
 }
 
 %template(BlockIdVector) std::vector<rkr::block_id>;

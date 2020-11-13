@@ -9,38 +9,40 @@ WorldCore::WorldCore(PluginLoader& ploader, bool ownership) :
   auto ev = static_cast<EventCore *>(ploader.require("Event"));
 
   ev->register_callback("ClientboundMapChunk",
-      [&](ev_id_type id, const void* p) {chunk_update(id, p);});
+      [&](ev_id_type, const void* data) {chunk_update(data);});
 
   ev->register_callback("ClientboundUnloadChunk",
-      [&](ev_id_type id, const void* p) {chunk_unload(id, p);});
+      [&](ev_id_type, const void* data) {chunk_unload(data);});
 
   ev->register_callback("ClientboundMultiBlockChange",
-      [&](ev_id_type id, const void* p) {multiblock_change(id, p);});
+      [&](ev_id_type, const void* data) {multiblock_change(data);});
 }
 
+block_id WorldCore::get(const BlockCoord& coord) {
+  return world.get(coord);
+}
+block_id WorldCore::get(std::int32_t x, std::int32_t y, std::int32_t z) {
+  return world.get(x, y, z);
+}
 std::vector<block_id> WorldCore::get(const std::vector<mcd::mc_position>&
-    positions) {
-  return world.get(positions);
+    coords) {
+  return world.get(coords);
 }
 std::vector<block_id> WorldCore::get(const std::vector<std::array<
-    std::int32_t, 3>>& positions) {
-  return world.get(positions);
+    std::int32_t, 3>>& coords) {
+  return world.get(coords);
 }
 
-void WorldCore::chunk_update(ev_id_type ev_id, const void* data) {
-  auto packet = static_cast<const mcd::ClientboundMapChunk*>(data);
-  world.update(*packet);
+void WorldCore::chunk_update(const void* data) {
+  world.update(*static_cast<const mcd::ClientboundMapChunk*>(data));
 }
 
-void WorldCore::chunk_unload(ev_id_type ev_id, const void* data) {
-  auto packet = static_cast<const mcd::ClientboundUnloadChunk*>(data);
-  world.unload(*packet);
+void WorldCore::chunk_unload(const void* data) {
+  world.unload(*static_cast<const mcd::ClientboundUnloadChunk*>(data));
 }
 
-void WorldCore::multiblock_change(ev_id_type ev_id,
-    const void* data) {
-  auto packet = static_cast<const mcd::ClientboundMultiBlockChange*>(data);
-  world.update(*packet);
+void WorldCore::multiblock_change(const void* data) {
+  world.update(*static_cast<const mcd::ClientboundMultiBlockChange*>(data));
 }
 
 } //namespace rkr
