@@ -1,15 +1,18 @@
-name: C/C++ CI
+name: Build
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
+  linux:
+    runs-on: ubuntu-20.04
     steps:
-    - uses: ashutoshvarma/action-cmake-build@v1
+      - name: Clone
+        uses: actions/checkout@v1
+      - run: pip install minecraft-data
+      - run: sudo apt-get install ninja-build libboost1.71-all-dev libbotan-2-dev
+      - run: cmake . -G Ninja
+        env:
+          CC: gcc-10
+          CXX: g++-10
+      - run: cmake --build . --target rikerbot_all
+      - run: python setup.py bdist_wheel
