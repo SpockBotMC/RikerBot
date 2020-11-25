@@ -125,6 +125,11 @@ void IOCore::run() {
   ev->emit(kill_event);
 }
 
+void IOCore::stop() {
+  BOOST_LOG_TRIVIAL(debug) << "Stop called, stopping";
+  ctx.stop();
+}
+
 void IOCore::encode_packet(const mcd::Packet& packet) {
   auto& header_buf = write_bufs.emplace_back();
   auto& body_buf = write_bufs.emplace_back();

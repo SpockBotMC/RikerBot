@@ -38,9 +38,9 @@ private:
   ev_id_type status_position_update;
   ev_id_type status_spawn;
   cb_id_type spawn_cb;
-  void handle_spawn(ev_id_type ev_id, const void* data);
-  void handle_ppl(ev_id_type ev_id, const void* data);
-  void handle_tick(ev_id_type ev_id, const void* data);
+  void handle_spawn(ev_id_type ev_id);
+  void handle_ppl(const void* data);
+  void handle_tick();
 };
 
 

@@ -18,18 +18,18 @@ WorldCore::WorldCore(PluginLoader& ploader, bool ownership) :
       [&](ev_id_type, const void* data) {multiblock_change(data);});
 }
 
-block_id WorldCore::get(const BlockCoord& coord) {
+block_id WorldCore::get(const BlockCoord& coord) const {
   return world.get(coord);
 }
-block_id WorldCore::get(std::int32_t x, std::int32_t y, std::int32_t z) {
+block_id WorldCore::get(std::int32_t x, std::int32_t y, std::int32_t z) const {
   return world.get(x, y, z);
 }
 std::vector<block_id> WorldCore::get(const std::vector<mcd::mc_position>&
-    coords) {
+    coords) const {
   return world.get(coords);
 }
 std::vector<block_id> WorldCore::get(const std::vector<std::array<
-    std::int32_t, 3>>& coords) {
+    std::int32_t, 3>>& coords) const {
   return world.get(coords);
 }
 

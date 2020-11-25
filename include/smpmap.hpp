@@ -6,6 +6,7 @@
 #include <optional>
 #include <utility>
 #include <array>
+#include <shared_mutex>
 
 #include <boost/functional/hash.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -38,7 +39,7 @@ private:
   void update(std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block);
   void update_palette(std::istream& data, std::uint8_t bits_per_block);
   void update_direct(std::istream& data, std::uint8_t bits_per_block);
-  block_id get(std::uint8_t x, std::uint8_t y, std::uint8_t z);
+  block_id get(std::uint8_t x, std::uint8_t y, std::uint8_t z) const;
 };
 
 class ChunkColumn {
@@ -51,9 +52,9 @@ class ChunkColumn {
   void update(std::uint8_t sec_coord, const std::vector<std::int64_t>&
       records);
 
-  block_id get(std::int32_t x, std::int32_t y, std::int32_t z);
+  block_id get(std::int32_t x, std::int32_t y, std::int32_t z) const;
   std::vector<std::pair<block_id, std::int32_t>> get(
-      std::vector<std::array<std::int32_t, 4>>& coords);
+      std::vector<std::array<std::int32_t, 4>>& coords) const;
 };
 
 class SMPMap {
@@ -62,16 +63,17 @@ public:
   void update(const mcd::ClientboundMultiBlockChange& packet);
   void unload(const mcd::ClientboundUnloadChunk& packet);
 
-  block_id get(const rkr::BlockCoord& coord);
-  block_id get(std::int32_t x, std::int32_t y, std::int32_t z);
+  block_id get(const rkr::BlockCoord& coord) const;
+  block_id get(std::int32_t x, std::int32_t y, std::int32_t z) const;
 
-  std::vector<block_id> get(const std::vector<rkr::BlockCoord>& coords);
+  std::vector<block_id> get(const std::vector<rkr::BlockCoord>& coords) const;
   std::vector<block_id> get(const std::vector<std::array<std::int32_t, 3>>&
-      coords);
+      coords) const;
 
 private:
   std::unordered_map<ChunkCoord, ChunkColumn, boost::hash<ChunkCoord>>
       chunks;
+  mutable std::shared_mutex mutex;
 
 };
 

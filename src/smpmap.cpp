@@ -69,7 +69,8 @@ void ChunkSection::update(std::uint8_t x, std::uint8_t y, std::uint8_t z,
   blocks[x + (z + y*16)*16] = block;
 }
 
-block_id ChunkSection::get(std::uint8_t x, std::uint8_t y, std::uint8_t z) {
+block_id ChunkSection::get(std::uint8_t x, std::uint8_t y, std::uint8_t z)
+    const {
   return blocks[x + (z + y*16)*16];
 }
 
@@ -95,7 +96,8 @@ void ChunkColumn::update(std::uint8_t sec_coord,
   }
 }
 
-block_id ChunkColumn::get(std::int32_t x, std::int32_t y, std::int32_t z) {
+block_id ChunkColumn::get(std::int32_t x, std::int32_t y, std::int32_t z)
+    const {
   auto section = sections[y >> 4];
   if(section)
     return section.value().get(x, y % 16, z);
@@ -104,7 +106,7 @@ block_id ChunkColumn::get(std::int32_t x, std::int32_t y, std::int32_t z) {
 }
 
 std::vector<std::pair<block_id, std::int32_t>> ChunkColumn::get(
-    std::vector<std::array<std::int32_t, 4>>& positions) {
+    std::vector<std::array<std::int32_t, 4>>& positions) const {
   std::vector<std::pair<block_id, std::int32_t>> ret(positions.size());
   for(int i = 0, end = positions.size(); i < end; i++) {
     auto pos = positions[i];
@@ -121,32 +123,39 @@ std::vector<std::pair<block_id, std::int32_t>> ChunkColumn::get(
 
 
 void SMPMap::update(const mcd::ClientboundMapChunk& packet) {
+  std::unique_lock lock(mutex);
   boost::interprocess::ibufferstream ibuf(packet.chunkData.data(),
       packet.chunkData.size());
   chunks[{packet.x, packet.z}].update(packet.bitMap, ibuf);
 }
 
 void SMPMap::update(const mcd::ClientboundMultiBlockChange& packet) {
+  std::unique_lock lock(mutex);
   chunks[{packet.chunkCoordinates.x, packet.chunkCoordinates.z}].update(
       packet.chunkCoordinates.y, packet.records);
 }
 
 void SMPMap::unload(const mcd::ClientboundUnloadChunk& packet) {
+  std::unique_lock lock(mutex);
   chunks.erase({packet.chunkX, packet.chunkZ});
 }
 
-block_id SMPMap::get(std::int32_t x, std::int32_t y, std::int32_t z) {
+block_id SMPMap::get(std::int32_t x, std::int32_t y, std::int32_t z) const {
+  std::shared_lock lock(mutex);
   return get({x, y, z});
 }
 
-block_id SMPMap::get(const BlockCoord& coord) {
-    auto iter = chunks.find({coord.x >> 4, coord.z >> 4});
-    if(iter != chunks.end())
-      return iter->second.get(coord.x % 16, coord.y, coord.z % 16);
-    return 0;
+block_id SMPMap::get(const BlockCoord& coord) const {
+  std::shared_lock lock(mutex);
+  auto iter = chunks.find({coord.x >> 4, coord.z >> 4});
+  if(iter != chunks.end())
+    return iter->second.get(coord.x % 16, coord.y, coord.z % 16);
+  return 0;
 }
 
-std::vector<block_id> SMPMap::get(const std::vector<BlockCoord>& coords) {
+std::vector<block_id> SMPMap::get(const std::vector<BlockCoord>& coords)
+    const {
+  std::shared_lock lock(mutex);
   std::vector<block_id> ret(coords.size());
   std::unordered_map<ChunkCoord, std::vector<std::array<std::int32_t, 4>>,
       boost::hash<ChunkCoord>> map;
@@ -158,7 +167,7 @@ std::vector<block_id> SMPMap::get(const std::vector<BlockCoord>& coords) {
   for(auto& el : map) {
     if(chunks.contains(el.first)) {
       // coord.first is the block_id, coord.second is the coordinate index
-      for(auto& coord : chunks[el.first].get(el.second))
+      for(auto& coord : chunks.at(el.first).get(el.second))
         ret[coord.second] = coord.first;
     } else {
       for(auto& coord : el.second)
@@ -169,7 +178,8 @@ std::vector<block_id> SMPMap::get(const std::vector<BlockCoord>& coords) {
 }
 
 std::vector<block_id> SMPMap::get(const std::vector<std::array<
-    std::int32_t, 3>>& coords) {
+    std::int32_t, 3>>& coords) const {
+  std::shared_lock lock(mutex);
   std::vector<block_id> ret(coords.size());
   std::unordered_map<ChunkCoord, std::vector<std::array<std::int32_t, 4>>,
       boost::hash<ChunkCoord>> map;
@@ -181,7 +191,7 @@ std::vector<block_id> SMPMap::get(const std::vector<std::array<
   for(auto& el : map) {
     if(chunks.contains(el.first)) {
       // coord.first is the block_id, coord.second is the coordinate index
-      for(auto& coord : chunks[el.first].get(el.second))
+      for(auto& coord : chunks.at(el.first).get(el.second))
         ret[coord.second] = coord.first;
     } else {
       for(auto& coord : el.second)

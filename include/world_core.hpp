@@ -9,18 +9,17 @@ namespace rkr {
 
 class WorldCore : public PluginBase {
 public:
-  rkr::SMPMap world;
-
   WorldCore(rkr::PluginLoader& ploader, bool ownership = false);
 
-  rkr::block_id get(const rkr::BlockCoord& coord);
-  rkr::block_id get(std::int32_t x, std::int32_t y, std::int32_t z);
+  rkr::block_id get(const rkr::BlockCoord& coord) const;
+  rkr::block_id get(std::int32_t x, std::int32_t y, std::int32_t z) const;
   std::vector<rkr::block_id> get(const std::vector<mcd::mc_position>&
-      positions);
+      positions) const;
   std::vector<rkr::block_id> get(const std::vector<std::array<
-      std::int32_t, 3>>& positions);
+      std::int32_t, 3>>& positions) const;
 
 private:
+  rkr::SMPMap world;
   void chunk_update(const void* data);
   void chunk_unload(const void* data);
   void multiblock_change(const void* data);

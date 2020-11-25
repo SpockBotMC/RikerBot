@@ -21,7 +21,7 @@ def mc_data_name(typename):
 # "Fields" are JSON objects with the following members:
 #   * "name" (optional): Name of the field
 #   * "anonymous" (optional): Only present if Name is absent, always "True"
-#   * "type": And MCD/Protodef "type"
+#   * "type": A MCD/Protodef "type"
 #
 # "Types" are either strings or 2-element JSON arrays
 #   * String "types" are a string of the type name
@@ -482,7 +482,7 @@ class mc_bitfield(complex_type):
       mask, shift, size, signed = self.extra_data[idx]
       shift_str = f">>{shift}" if shift else ""
       ret.append(f"{name}{field.name} = "
-      f"({self.storage.name}{shift_str})&{mask};")
+          f"({self.storage.name}{shift_str})&{mask};")
       if signed:
         ret.extend((
           f"if({name}{field.name} & (1UL << {size - 1}))",

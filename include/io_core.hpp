@@ -48,6 +48,7 @@ public:
 
   IOCore(rkr::PluginLoader& ploader, bool ownership = false);
   void run();
+  void stop();
   void encode_packet(const mcd::Packet& packet);
   void connect(const std::string& host, const std::string& service);
 
