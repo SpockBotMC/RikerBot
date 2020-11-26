@@ -6,6 +6,7 @@ swig_interface = (
   '%{',
   f'#include "proto_{version}.hpp"',
   '%}',
+  '%feature ("flatnested");',
   '',
   '%include <stdint.i>',
   '%include <std_string.i>',

@@ -721,6 +721,7 @@ class mc_array(simple_type):
     while not isinstance(p, packet):
       self.depth += 1
       p = p.parent
+    self.packet = p
 
     self.is_fixed = False
     self.is_prefixed = False
@@ -746,7 +747,7 @@ class mc_array(simple_type):
       ret = []
       f_type = self.field.typename
     else:
-      self.field.name = f"{self.name}_type"
+      self.field.name = f"{self.packet.packet_name}_{self.name}_type"
       ret = self.field.typedef()
       f_type = self.field.name
     if self.is_fixed:

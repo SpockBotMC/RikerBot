@@ -16,7 +16,7 @@
 #include <memory>
 #include <zlib.h>
 #include <botan/cipher_mode.h>
-#include <net.hpp>
+#include <boost/asio/ts/net.hpp>
 #include <boost/asio.hpp>
 
 // I have no idea why SWIG hates namespace aliasing, but what it can't see

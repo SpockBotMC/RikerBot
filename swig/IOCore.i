@@ -3,6 +3,8 @@
 #include "io_core.hpp"
 %}
 
+%feature ("flatnested");
+
 %include <stdint.i>
 %include <std_string.i>
 %include <pybuffer.i>

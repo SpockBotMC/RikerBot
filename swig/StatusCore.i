@@ -3,6 +3,8 @@
 #include "status_core.hpp"
 %}
 
+%feature ("flatnested");
+
 %include <stdint.i>
 %include <std_string.i>
 

@@ -5,9 +5,8 @@ set(MC_VERSION "1.16.4" CACHE STRING "Minecraft version to target")
 STRING(REGEX REPLACE [\.] _ MC_USCORE ${MC_VERSION})
 
 
-find_path(NET net.hpp PATH_SUFFIXES boost/asio/ts REQUIRED)
 find_path(BOTAN botan/botan.h PATH_SUFFIXES botan-2 REQUIRED)
-find_library(LIBBOTAN botan-2 REQUIRED)
+find_library(LIBBOTAN NAMES botan botan-2 REQUIRED)
 
 find_package(Boost COMPONENTS log REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -16,8 +15,7 @@ find_package(SWIG 4.0 REQUIRED)
 include(UseSWIG)
 
 
-set(INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${Python3_INCLUDE_DIRS} ${NET}
-    ${BOTAN} include)
+set(INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${Python3_INCLUDE_DIRS} ${BOTAN} include)
 set(OPTIONS -Wall -Wpedantic -DBOOST_ASIO_DISABLE_CONCEPTS)
 
 set(RIKER_DEPENDS "")
