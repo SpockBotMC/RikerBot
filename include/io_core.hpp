@@ -46,9 +46,7 @@ class IOCore : public PluginBase {
 public:
   std::uint8_t shared_secret[16];
 
-  IOCore(rkr::PluginLoader& ploader, bool ownership = false);
-  void run();
-  void stop();
+  IOCore(rkr::PluginLoader& ploader, net::io_context& ctx, bool ownership = false);
   void encode_packet(const mcd::Packet& packet);
   void connect(const std::string& host, const std::string& service);
 
@@ -58,7 +56,6 @@ private:
   bool compressed = false;
   bool encrypted = false;
   bool ongoing_write = false;
-  net::io_context ctx;
   ip::tcp::socket sock;
   ip::tcp::resolver rslv;
   boost::asio::steady_timer tick_timer;
@@ -83,7 +80,6 @@ private:
 
   std::array<std::array<std::vector<ev_id_type>,
       mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
-
 
   void tick();
   void read_packet();

@@ -23,7 +23,7 @@
 
 namespace rkr {
 
-IOCore::IOCore(PluginLoader& ploader, bool ownership) :
+IOCore::IOCore(PluginLoader& ploader, net::io_context &ctx, bool ownership) :
     PluginBase("rkr::IOCore *"), sock(ctx), rslv(ctx), tick_timer(ctx),
     read_is(&read_buf) {
 
@@ -104,30 +104,6 @@ void IOCore::write_packet(const boost::asio::streambuf& header,
     net::async_write(sock, out_bufs, [&](const sys::error_code& ec,
         std::size_t len) {write_handler(ec, len);});
   }
-}
-
-void IOCore::signal_handler(const sys::error_code& ec, int sig) {
-  if(!ec) {
-    BOOST_LOG_TRIVIAL(debug) << "Signal called, stopping";
-    ctx.stop();
-  } else {
-    BOOST_LOG_TRIVIAL(fatal) << "Error in signal handler: " << ec.message();
-    exit(-1);
-  }
-}
-
-void IOCore::run() {
-  read_packet();
-  boost::asio::signal_set signals(ctx, SIGINT, SIGTERM);
-  signals.async_wait(
-      [&](const sys::error_code& ec, int sig) {signal_handler(ec, sig);});
-  ctx.run();
-  ev->emit(kill_event);
-}
-
-void IOCore::stop() {
-  BOOST_LOG_TRIVIAL(debug) << "Stop called, stopping";
-  ctx.stop();
 }
 
 void IOCore::encode_packet(const mcd::Packet& packet) {
@@ -213,6 +189,7 @@ void IOCore::connect_handler(const sys::error_code& ec,
   ConnectData data {ep.address().to_string(), ep.port()};
   ev->emit(connect_event, static_cast<const void*>(&data),
       "rkr::ConnectData *");
+  read_packet();
 }
 
 void IOCore::write_handler(const sys::error_code& ec, std::size_t len) {

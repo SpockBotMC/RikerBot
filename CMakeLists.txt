@@ -114,6 +114,25 @@ add_dependencies(EventCore swig_runtime)
 list(APPEND RIKER_DEPENDS EventCore)
 
 
+# Exec Core
+set_property(SOURCE swig/ExecCore.i PROPERTY CPLUSPLUS ON)
+swig_add_library(ExecCore
+  LANGUAGE python
+  OUTPUT_DIR ${RKR_PLUGIN_DIR}
+  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
+  SOURCES swig/ExecCore.i src/exec_core.cpp src/plugin_loader.cpp
+      src/plugin_base.cpp src/event_core.cpp
+)
+set_target_properties(ExecCore PROPERTIES OUTPUT_NAME CExecCore
+    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
+    LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
+target_compile_features(ExecCore PRIVATE cxx_std_20)
+target_compile_options(ExecCore PRIVATE ${OPTIONS})
+target_include_directories(ExecCore PRIVATE ${INCLUDES})
+target_link_libraries(ExecCore ${Boost_LOG_LIBRARY})
+list(APPEND RIKER_DEPENDS ExecCore)
+
+
 # IO Core
 set_property(SOURCE swig/IOCore.i PROPERTY CPLUSPLUS ON)
 swig_add_library(IOCore

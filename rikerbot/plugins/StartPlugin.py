@@ -3,7 +3,7 @@ from rikerbot import proto
 
 @pl_announce('Start')
 class StartPlugin(PluginBase):
-  requires = ('Event', 'IO', 'Auth')
+  requires = ('Event', 'Exec', 'IO', 'Auth')
   events = {
     'io_connect': 'handle_connect',
   }
@@ -16,7 +16,7 @@ class StartPlugin(PluginBase):
     port = str(port)
     self.auth.login()
     self.io.connect(host, port)
-    self.io.run()
+    self.exec.run()
 
   def handle_connect(self, event_id, connect_data):
     packet = proto.ServerboundSetProtocol()
