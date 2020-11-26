@@ -24,21 +24,12 @@
 namespace rkr {
 
 IOCore::IOCore(PluginLoader& ploader, net::io_context &ctx, bool ownership) :
-    PluginBase("rkr::IOCore *"), sock(ctx), rslv(ctx), tick_timer(ctx),
-    read_is(&read_buf) {
+    PluginBase{"rkr::IOCore *"}, sock{ctx}, rslv{ctx}, tick_timer{ctx} {
 
   read_is.exceptions(read_is.eofbit | read_is.badbit | read_is.failbit);
   Botan::system_rng().randomize(shared_secret, std::size(shared_secret));
 
-  // If you can find where it's documented you need to pass /8 here in order to
-  // get Botan to set the feedback bits correctly, please tell me. I spent a
-  // full day debugging this.
-  encryptor = Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::ENCRYPTION);
-  decryptor = Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::DECRYPTION);
-
-  inflator = {};
   inflateInit(&inflator);
-  deflator = {};
   deflateInit(&deflator, Z_DEFAULT_COMPRESSION);
 
   ploader.provide("IO", this, ownership);

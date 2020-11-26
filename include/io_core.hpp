@@ -52,10 +52,10 @@ public:
 
 private:
   EventCore* ev;
-  mcd::packet_state state = mcd::HANDSHAKING;
-  bool compressed = false;
-  bool encrypted = false;
-  bool ongoing_write = false;
+  mcd::packet_state state {mcd::HANDSHAKING};
+  bool compressed {false};
+  bool encrypted {false};
+  bool ongoing_write {false};
   ip::tcp::socket sock;
   ip::tcp::resolver rslv;
   boost::asio::steady_timer tick_timer;
@@ -65,17 +65,19 @@ private:
 
   boost::asio::mutable_buffer in_buf;
   boost::asio::streambuf read_buf;
-  std::istream read_is;
+  std::istream read_is {&read_buf};
 
   ev_id_type connect_event;
   ev_id_type kill_event;
   ev_id_type tick_event;
 
-  std::unique_ptr<Botan::Cipher_Mode> encryptor;
-  std::unique_ptr<Botan::Cipher_Mode> decryptor;
+  std::unique_ptr<Botan::Cipher_Mode> encryptor {
+      Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::ENCRYPTION)};
+  std::unique_ptr<Botan::Cipher_Mode> decryptor {
+      Botan::Cipher_Mode::create("AES-128/CFB/8", Botan::DECRYPTION)};
 
-  z_stream inflator;
-  z_stream deflator;
+  z_stream inflator {};
+  z_stream deflator {};
   std::size_t threshold;
 
   std::array<std::array<std::vector<ev_id_type>,
