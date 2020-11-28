@@ -149,7 +149,7 @@ block_id SMPMap::get(const BlockCoord& coord) const {
   std::shared_lock lock(mutex);
   auto iter = chunks.find({coord.x >> 4, coord.z >> 4});
   if(iter != chunks.end())
-    return iter->second.get(coord.x % 16, coord.y, coord.z % 16);
+    return iter->second.get(coord.x & 15, coord.y, coord.z & 15);
   return 0;
 }
 
@@ -162,7 +162,7 @@ std::vector<block_id> SMPMap::get(const std::vector<BlockCoord>& coords)
   for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
     auto& block_coord = coords[i];
     map[{block_coord.x >> 4, block_coord.z >> 4}].push_back({
-        block_coord.x % 16, block_coord.y, block_coord.z % 16, i});
+        block_coord.x & 15, block_coord.y, block_coord.z & 15, i});
   }
   for(auto& el : map) {
     if(chunks.contains(el.first)) {
@@ -186,7 +186,7 @@ std::vector<block_id> SMPMap::get(const std::vector<std::array<
   for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
     auto& block_coord = coords[i];
     map[{block_coord[0] >> 4, block_coord[2] >> 4}].push_back({
-        block_coord[0] % 16, block_coord[1], block_coord[2] % 16, i});
+        block_coord[0] & 15, block_coord[1], block_coord[2] & 15, i});
   }
   for(auto& el : map) {
     if(chunks.contains(el.first)) {
