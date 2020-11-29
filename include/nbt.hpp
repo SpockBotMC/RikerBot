@@ -96,11 +96,12 @@ public:
   const std::uint8_t tag_id;
   const std::string type_name;
   std::optional<std::string> name;
-  BaseTag(const std::uint8_t id, const std::string type_name) :
-  tag_id(id), type_name(type_name) {}
-  BaseTag(const std::string name, const std::uint8_t id,
-  const std::string type_name) :
-  tag_id(id), type_name(type_name), name(name)  {}
+
+  BaseTag(const std::uint8_t id, const std::string& type_name) :
+      tag_id(id), type_name(type_name) {}
+  BaseTag(const std::string& name, const std::uint8_t id,
+      const std::string type_name) : tag_id(id), type_name(type_name),
+      name(name)  {}
   virtual ~BaseTag() = default;
 
   virtual void encode(std::ostream &buf) const = 0;
@@ -124,11 +125,11 @@ public:
   T val;
   // Pass type_name string as param because trying to pass _FixedString between
   // templates is a no go. See: https://stackoverflow.com/q/62874007/1201456
-  Tag(const std::string type_name) : BaseTag(id, type_name) {}
-  Tag(const std::string name, const::std::string type_name) :
-  BaseTag(name, id, type_name) {}
-  Tag(const T val, const std::string name, const::std::string type_name) :
-  BaseTag(name, id, type_name), val(val) {}
+  Tag(const std::string& type_name) : BaseTag(id, type_name) {}
+  Tag(const std::string name, const::std::string& type_name) :
+      BaseTag(name, id, type_name) {}
+  Tag(const T val, const std::string name, const::std::string& type_name) :
+      BaseTag(name, id, type_name), val(val) {}
 };
 
 
@@ -136,17 +137,18 @@ template <std::integral Integral, std::uint8_t id, _FixedString type_name>
 class TagIntegral : public Tag<Integral, id> {
 public:
   TagIntegral() : TagIntegral::Tag(type_name.el) {}
-  TagIntegral(std::string name) : TagIntegral::Tag(name, type_name.el) {}
+  TagIntegral(const std::string& name) : TagIntegral::Tag(name, type_name.el)
+      {}
   TagIntegral(Integral val, std::string name) :
-  TagIntegral::Tag(val, name, type_name.el) {}
+      TagIntegral::Tag(val, name, type_name.el) {}
   TagIntegral(Integral val) : TagIntegral::Tag(type_name.el) {
     this->val = val;
   }
   TagIntegral(std::istream &buf) : TagIntegral::Tag(type_name.el) {
     this->decode(buf);
   }
-  TagIntegral(std::istream &buf, std::string name) :
-  TagIntegral::Tag(name, type_name.el) {
+  TagIntegral(std::istream &buf, const std::string& name) :
+      TagIntegral::Tag(name, type_name.el) {
     this->decode(buf);
   }
 
@@ -240,9 +242,9 @@ class TagArray : public Tag<std::vector<T>, id> {
 public:
 
   TagArray() : TagArray::Tag(type_name.el) {}
-  TagArray(std::string name) : TagArray::Tag(name, type_name.el) {}
-  TagArray(std::vector<T> val, std::string name) :
-  TagArray::Tag(val, name, type_name.el) {}
+  TagArray(const std::string& name) : TagArray::Tag(name, type_name.el) {}
+  TagArray(std::vector<T> val, const std::string& name) :
+      TagArray::Tag(val, name, type_name.el) {}
   TagArray(std::initializer_list<T> l) : TagArray::Tag(type_name.el) {
     this->val = l;
   }
@@ -252,7 +254,7 @@ public:
   TagArray(std::istream &buf) : TagArray::Tag(type_name.el) {
     this->decode(buf);
   }
-  TagArray(std::istream &buf, std::string name) :
+  TagArray(std::istream &buf, const std::string& name) :
   TagArray::Tag(name, type_name.el) {
     this->decode(buf);
   }
@@ -323,12 +325,14 @@ inline std::string read_string(std::istream &buf) {
 class TagString : public Tag<std::string, TAG_STRING> {
 public:
   TagString() : Tag("TagString") {}
-  TagString(std::string name) : Tag(name, "TagString") {}
-  TagString(std::string val, std::string name) : Tag(val, name, "TagString") {}
+  TagString(const std::string& name) : Tag(name, "TagString") {}
+  TagString(const std::string& val, std::string name) :
+      Tag(val, name, "TagString") {}
   TagString(std::istream &buf) : Tag("TagString") {
     this->decode(buf);
   }
-  TagString(std::istream &buf, std::string name) : Tag(name, "TagString") {
+  TagString(std::istream &buf, const std::string& name) :
+      Tag(name, "TagString") {
     this->decode(buf);
   }
 
@@ -362,7 +366,7 @@ public:
   TagList(std::istream &buf) : Tag("TagList") {
     this->decode(buf);
   }
-  TagList(std::istream &buf, std::string name) : Tag(name, "TagList") {
+  TagList(std::istream &buf, const std::string& name) : Tag(name, "TagList") {
     this->decode(buf);
   }
   TagList(const TagList &other) : Tag("TagList") {
@@ -401,11 +405,12 @@ class TagCompound : public Tag
 <std::unordered_map<std::string, std::unique_ptr<BaseTag>>, TAG_COMPOUND> {
 public:
   TagCompound() : Tag("TagCompound") {}
-  TagCompound(std::string name) : Tag(name, "TagCompound") {}
+  TagCompound(const std::string& name) : Tag(name, "TagCompound") {}
   TagCompound(std::istream &buf) : Tag("TagCompound") {
     this->decode(buf);
   }
-  TagCompound(std::istream &buf, std::string name) : Tag(name, "TagCompound") {
+  TagCompound(std::istream &buf, const std::string& name) :
+      Tag(name, "TagCompound") {
     this->decode(buf);
   }
   TagCompound(const TagCompound &other) : Tag("TagCompound") {
