@@ -242,13 +242,10 @@ void enc_position(std::ostream &dest, mc_position src) {
 }
 mc_position dec_position(std::istream &src) {
   mc_position dest;
-  std::uint64_t tmp = dec_be64(src);
-  if((dest.x = tmp >> 38) & (1UL << 25))
-    dest.x -= 1UL << 26;
-  if((dest.y = (tmp >> 26) & 0xFFFUL) & (1UL << 11))
-    dest.y -= 1UL << 12;
-  if((dest.z = tmp & 0x3FFFFFFUL) & (1UL << 25))
-    dest.z -= 1UL << 26;
+  std::int64_t tmp = dec_be64(src);
+  dest.x=tmp >> 38;
+  dest.y=tmp & 0xfff;
+  dest.z=tmp << 26 >> 38;
   return dest;
 }
 
