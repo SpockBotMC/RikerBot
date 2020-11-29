@@ -135,6 +135,19 @@ void SMPMap::update(const mcd::ClientboundMultiBlockChange& packet) {
       packet.chunkCoordinates.y, packet.records);
 }
 
+void SMPMap::update(const mcd::ClientboundBlockChange& packet) {
+  std::unique_lock lock(mutex);
+  if (chunks[{packet.location.x >> 4, packet.location.z >> 4}].sections[packet.location.y >> 4])
+  {
+    std::vector<std::int64_t> records;
+    std::int64_t block=packet.type | ((packet.location.x & 0xf) << 8 | (packet.location.y & 0xf) | (packet.location.z & 0xf));
+    records.push_back(block);
+    chunks[{packet.location.x >> 4, packet.location.z >> 4}].update(
+        packet.location.y >> 4, records);
+  }
+}
+
+
 void SMPMap::unload(const mcd::ClientboundUnloadChunk& packet) {
   std::unique_lock lock(mutex);
   chunks.erase({packet.chunkX, packet.chunkZ});

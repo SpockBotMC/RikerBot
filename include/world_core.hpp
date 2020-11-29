@@ -23,6 +23,7 @@ private:
   void chunk_update(const void* data);
   void chunk_unload(const void* data);
   void multiblock_change(const void* data);
+  void block_change(const void* data);
 };
 
 

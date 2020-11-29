@@ -61,6 +61,7 @@ class SMPMap {
 public:
   void update(const mcd::ClientboundMapChunk& packet);
   void update(const mcd::ClientboundMultiBlockChange& packet);
+  void update(const mcd::ClientboundBlockChange& packet);
   void unload(const mcd::ClientboundUnloadChunk& packet);
 
   block_id get(const rkr::BlockCoord& coord) const;
