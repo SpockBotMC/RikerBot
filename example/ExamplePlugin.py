@@ -94,7 +94,7 @@ class ExamplePlugin(PluginBase):
   def handle_incoming_chat(self, event_id, packet):
     # Riker provides its own logging facilities, the interface is similar to
     # the Python logging module
-    logger.info(f"Recieved Message: {packet.message}")
+    logger.info(f"Received Message: {packet.message}")
 
     # Packets have no useful methods, they are just collections of fields to be
     # filled and then sent to I/O. Typically only lower level plugins should
