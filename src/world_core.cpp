@@ -16,6 +16,9 @@ WorldCore::WorldCore(PluginLoader& ploader, bool ownership) :
 
   ev->register_callback("ClientboundMultiBlockChange",
       [&](ev_id_type, const void* data) {multiblock_change(data);});
+
+  ev->register_callback("ClientboundBlockChange",
+      [&](ev_id_type, const void* data) {block_change(data);});
 }
 
 block_id WorldCore::get(const BlockCoord& coord) const {
@@ -43,6 +46,10 @@ void WorldCore::chunk_unload(const void* data) {
 
 void WorldCore::multiblock_change(const void* data) {
   world.update(*static_cast<const mcd::ClientboundMultiBlockChange*>(data));
+}
+
+void WorldCore::block_change(const void* data) {
+  world.update(*static_cast<const mcd::ClientboundBlockChange*>(data));
 }
 
 } //namespace rkr

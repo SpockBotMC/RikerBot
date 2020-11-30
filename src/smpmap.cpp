@@ -8,7 +8,7 @@ ChunkSection::ChunkSection(std::istream& data) {
 }
 
 void ChunkSection::update(std::istream& data) {
-  block_count = mcd::dec_be16(data);
+  mcd::dec_be16(data); // Block Count, used for lighting, unused by us
   std::uint8_t bits_per_block = mcd::dec_byte(data);
   if(bits_per_block < 8) {
     if(bits_per_block < 4)
@@ -96,6 +96,14 @@ void ChunkColumn::update(std::uint8_t sec_coord,
   }
 }
 
+void ChunkColumn::update(std::uint8_t x, std::uint8_t y, std::uint8_t z,
+   block_id block) {
+  auto section = sections[y >> 4];
+  if(!section)
+    section.emplace();
+  section.value().update(x, y & 0xF, z, block);
+}
+
 block_id ChunkColumn::get(std::int32_t x, std::int32_t y, std::int32_t z)
     const {
   auto section = sections[y >> 4];
@@ -135,6 +143,13 @@ void SMPMap::update(const mcd::ClientboundMultiBlockChange& packet) {
       packet.chunkCoordinates.y, packet.records);
 }
 
+void SMPMap::update(const mcd::ClientboundBlockChange& packet) {
+  std::unique_lock lock(mutex);
+  chunks[{packet.location.x >> 4, packet.location.z >> 4}].update(
+      packet.location.x & 0xF, packet.location.y, packet.location.z & 0xF,
+      packet.type);
+}
+
 void SMPMap::unload(const mcd::ClientboundUnloadChunk& packet) {
   std::unique_lock lock(mutex);
   chunks.erase({packet.chunkX, packet.chunkZ});
@@ -162,7 +177,7 @@ std::vector<block_id> SMPMap::get(const std::vector<BlockCoord>& coords)
   for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
     auto& block_coord = coords[i];
     map[{block_coord.x >> 4, block_coord.z >> 4}].push_back({
-        block_coord.x & 15, block_coord.y, block_coord.z & 15, i});
+        block_coord.x & 0xF, block_coord.y, block_coord.z & 0xF, i});
   }
   for(auto& el : map) {
     if(chunks.contains(el.first)) {
@@ -186,7 +201,7 @@ std::vector<block_id> SMPMap::get(const std::vector<std::array<
   for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
     auto& block_coord = coords[i];
     map[{block_coord[0] >> 4, block_coord[2] >> 4}].push_back({
-        block_coord[0] & 15, block_coord[1], block_coord[2] & 15, i});
+        block_coord[0] & 0xF, block_coord[1], block_coord[2] & 0xF, i});
   }
   for(auto& el : map) {
     if(chunks.contains(el.first)) {

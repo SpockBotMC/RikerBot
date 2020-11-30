@@ -230,13 +230,13 @@ mc_uuid dec_uuid(std::istream &src) {
   return dest;
 }
 
-// From MSB to LSB x: 26-bits, y: 12-bits, z: 26-bits
+// From MSB to LSB x: 26-bits, z: 26-bits, y: 12-bits
 // each is an independent signed 2-complement integer
 void enc_position(std::ostream &dest, mc_position src) {
   uint64_t tmp = (
     (static_cast<std::uint64_t>(src.x) & 0x3FFFFFFUL) << 38 |
-    (static_cast<std::uint64_t>(src.y) & 0xFFFUL) << 26 |
-    (static_cast<std::uint64_t>(src.z) & 0x3FFFFFFUL)
+    (static_cast<std::uint64_t>(src.z) & 0x3FFFFFFUL) << 12 |
+    (static_cast<std::uint64_t>(src.y) & 0xFFFUL)
   );
   enc_be64(dest, tmp);
 }
@@ -245,10 +245,10 @@ mc_position dec_position(std::istream &src) {
   std::uint64_t tmp = dec_be64(src);
   if((dest.x = tmp >> 38) & (1UL << 25))
     dest.x -= 1UL << 26;
-  if((dest.y = (tmp >> 26) & 0xFFFUL) & (1UL << 11))
-    dest.y -= 1UL << 12;
-  if((dest.z = tmp & 0x3FFFFFFUL) & (1UL << 25))
+  if((dest.z = tmp >> 12 & 0x3FFFFFFUL) & (1UL << 25))
     dest.z -= 1UL << 26;
+  if((dest.y = tmp & 0xFFFUL) & (1UL << 11))
+    dest.y -= 1UL << 12;
   return dest;
 }
 

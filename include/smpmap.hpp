@@ -31,8 +31,6 @@ public:
 private:
   friend class ChunkColumn;
 
-  std::uint16_t block_count;
-
   // x, z, y ordered x + (z*16) + y*16*16
   std::array<block_id, 16*16*16> blocks;
   void update(std::istream& data);
@@ -51,6 +49,7 @@ class ChunkColumn {
   void update(std::uint16_t bitmask, std::istream& data);
   void update(std::uint8_t sec_coord, const std::vector<std::int64_t>&
       records);
+  void update(std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block);
 
   block_id get(std::int32_t x, std::int32_t y, std::int32_t z) const;
   std::vector<std::pair<block_id, std::int32_t>> get(
@@ -61,6 +60,7 @@ class SMPMap {
 public:
   void update(const mcd::ClientboundMapChunk& packet);
   void update(const mcd::ClientboundMultiBlockChange& packet);
+  void update(const mcd::ClientboundBlockChange& packet);
   void unload(const mcd::ClientboundUnloadChunk& packet);
 
   block_id get(const rkr::BlockCoord& coord) const;
