@@ -98,7 +98,7 @@ void ChunkColumn::update(std::uint8_t sec_coord,
 
 void ChunkColumn::update(std::uint8_t x, std::uint8_t y, std::uint8_t z,
    block_id block) {
-  auto section = sections[y >> 4];
+  auto& section = sections[y >> 4];
   if(!section)
     section.emplace();
   section.value().update(x, y & 0xF, z, block);
@@ -106,7 +106,7 @@ void ChunkColumn::update(std::uint8_t x, std::uint8_t y, std::uint8_t z,
 
 block_id ChunkColumn::get(std::int32_t x, std::int32_t y, std::int32_t z)
     const {
-  auto section = sections[y >> 4];
+  auto& section = sections[y >> 4];
   if(section)
     return section.value().get(x, y % 16, z);
   else
@@ -117,8 +117,8 @@ std::vector<std::pair<block_id, std::int32_t>> ChunkColumn::get(
     std::vector<std::array<std::int32_t, 4>>& positions) const {
   std::vector<std::pair<block_id, std::int32_t>> ret(positions.size());
   for(int i = 0, end = positions.size(); i < end; i++) {
-    auto pos = positions[i];
-    auto section = sections[pos[1] >> 4];
+    auto& pos = positions[i];
+    auto& section = sections[pos[1] >> 4];
     // ToDo: Group all requests inside a given section together so we don't
     // repeat this check
     if(section)
