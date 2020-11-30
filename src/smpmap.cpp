@@ -88,9 +88,9 @@ void ChunkColumn::update(std::uint8_t sec_coord,
     const std::vector<std::int64_t>& records) {
   auto& section = sections[sec_coord];
   for(auto el : records) {
-    std::uint8_t y = el&0xF;
-    std::uint8_t z = (el>>=4)&0xF;
-    std::uint8_t x = (el>>=4)&0xF;
+    std::int64_t z = el&0xF;
+    std::int64_t y = (el>>=4)&0xF;
+    std::int64_t x = (el>>=4)&0xF;
     block_id block = el>>4;
     section.value().update(x, y, z, block);
   }
@@ -140,7 +140,7 @@ void SMPMap::update(const mcd::ClientboundBlockChange& packet) {
   if (chunks[{packet.location.x >> 4, packet.location.z >> 4}].sections[packet.location.y >> 4])
   {
     std::vector<std::int64_t> records;
-    std::int64_t block=packet.type | ((packet.location.x & 0xf) << 8 | (packet.location.y & 0xf) | (packet.location.z & 0xf));
+    std::int64_t block=packet.type << 12 | ((packet.location.x & 0xf) << 8 | (packet.location.y & 0xf) << 4 | (packet.location.z & 0xf));
     records.push_back(block);
     chunks[{packet.location.x >> 4, packet.location.z >> 4}].update(
         packet.location.y >> 4, records);
