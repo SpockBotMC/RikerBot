@@ -13,7 +13,7 @@ you see today, come back tomorrow! Features are arriving fast!
 
 Things Riker can do today:
  * Full protocol support, including authentication, targeting the latest
-   protocol supported by minecraft-data_ (currently 1.16.4)
+   protocol supported by minecraft-data_ (currently 1.16.5)
  * Parse world updates and provide an accessible interface to block data
 
 Why build Riker and not work on an existing project?:
