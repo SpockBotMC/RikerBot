@@ -27,8 +27,6 @@ typedef struct {
   std::uint64_t lsb;
 } mc_uuid;
 
-// From MSB to LSB x: 26-bits, y: 12-bits, z: 26-bits
-// each is an independent signed 2-complement integer
 typedef struct {
   std::int32_t x;
   std::int32_t y;

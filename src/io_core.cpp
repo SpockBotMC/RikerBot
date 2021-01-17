@@ -139,21 +139,13 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
   }
 
   if(encrypted) {
-    // These memcpys are here because Botan will only let me use a CipherMode
-    // in-place. There must be a better way, but this will do for now
-    auto size = header_buf.size();
-    auto mut = header_buf.prepare(size);
-    std::memcpy(mut.data(), header_buf.data().data(), size);
-    encryptor->process(static_cast<std::uint8_t*>(mut.data()), size);
-    header_buf.commit(size);
-    header_buf.consume(size);
+    // Botan will only let me use a CipherMode in-place. So we do a bad thing
+    // and discard const. Blame Botan.
+    encryptor->process(static_cast<std::uint8_t*>(const_cast<void*>(
+        header_buf.data().data())), header_buf.size());
 
-    size = body_buf.size();
-    mut = body_buf.prepare(size);
-    std::memcpy(mut.data(), body_buf.data().data(), size);
-    encryptor->process(static_cast<std::uint8_t*>(mut.data()), size);
-    body_buf.commit(size);
-    body_buf.consume(size);
+    encryptor->process(static_cast<std::uint8_t*>(const_cast<void*>(
+        body_buf.data().data())), body_buf.size());
   }
 
   ev->emit(packet_event_ids[state][mcd::SERVERBOUND][packet.packet_id],
@@ -302,22 +294,25 @@ void IOCore::read_body(size_t len) {
 
 void IOCore::encryption_begin_handler(const void* data) {
   auto packet = static_cast<const mcd::ClientboundEncryptionBegin*>(data);
-  auto mem = Botan::DataSource_Memory(reinterpret_cast<const std::uint8_t*>(
+  Botan::DataSource_Memory mem(reinterpret_cast<const std::uint8_t*>(
       packet->publicKey.data()), packet->publicKey.size());
-  auto key = Botan::X509::load_key(mem);
+
   auto& rng = Botan::system_rng();
-  auto enc = Botan::PK_Encryptor_EME(*key, rng, "PKCS1v15");
-  auto result = enc.encrypt(shared_secret, std::size(shared_secret), rng);
-  auto resp = mcd::ServerboundEncryptionBegin();
-  // ToDo: std::swap can be used here maybe?
-  resp.sharedSecret.resize(result.size());
-  std::memcpy(resp.sharedSecret.data(), result.data(), result.size());
-  result = enc.encrypt(reinterpret_cast<const std::uint8_t*>(
+  auto key = std::unique_ptr<Botan::Public_Key>(Botan::X509::load_key(mem));
+  Botan::PK_Encryptor_EME enc(*key, rng, "PKCS1v15");
+
+  mcd::ServerboundEncryptionBegin resp;
+
+  // This nonsense is necessary because char and uint8_t vectors don't play
+  // nicely with one another. It is almost certainly a standards violation.
+  auto rslt = enc.encrypt(shared_secret, std::size(shared_secret), rng);
+  resp.sharedSecret = std::move(*reinterpret_cast<std::vector<char>*>(&rslt));
+
+  rslt = enc.encrypt(reinterpret_cast<const std::uint8_t*>(
       packet->verifyToken.data()), packet->verifyToken.size(), rng);
-  resp.verifyToken.resize(result.size());
-  std::memcpy(resp.verifyToken.data(), result.data(), result.size());
+  resp.verifyToken = std::move(*reinterpret_cast<std::vector<char>*>(&rslt));
+
   encode_packet(resp);
-  delete key;
 }
 
 void IOCore::enable_encryption(const void* data) {

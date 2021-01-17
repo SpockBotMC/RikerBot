@@ -189,7 +189,7 @@ public:
   TagDecimal() : TagDecimal::Tag(type_name.el) {}
   TagDecimal(std::string name) : TagDecimal::Tag(name, type_name.el) {}
   TagDecimal(Decimal val, std::string name) :
-  TagDecimal::Tag(val, name, type_name.el) {}
+      TagDecimal::Tag(val, name, type_name.el) {}
   TagDecimal(Decimal val) : TagDecimal::Tag(type_name.el) {
     this->val = val;
   }
