@@ -48,6 +48,8 @@ def run(mcd, indent = '  '):
     "",
     f"extern const MCBlockData block_data[{len(mcd.blocks_list)}];",
     "",
+    "const MCBlockData& from_stateID(std::uint64_t state_id);"
+    "",
     "} // namespace mcd",
     "#endif // BLOCKDATA_HPP",
   ]
@@ -61,6 +63,7 @@ def run(mcd, indent = '  '):
     f"{i}It should not be edited by hand.",
     "*/",
     "",
+    "#include <map>",
     "#include \"block_data.hpp\"",
     "",
     "namespace mcd {",
@@ -109,6 +112,18 @@ def run(mcd, indent = '  '):
   block_cpp[-1] = block_cpp[-1][:-1]
   block_cpp.extend((
     "};",
+    "",
+    "const std::map<std::uint64_t, const MCBlockData&> state_id_map = {"
+  ))
+
+  block_cpp.append(',\n'.join(f"{i}{{{block['maxStateId']}, block_data[{block['id']}]}}" for block in mcd.blocks_list))
+
+  block_cpp.extend((
+    "};",
+    "",
+    "const MCBlockData& from_stateID(std::uint64_t state_id) {",
+    f"{i}return state_id_map.lower_bound(state_id)->second;",
+    "}",
     "",
     "} // namespace mcd",
     ""
