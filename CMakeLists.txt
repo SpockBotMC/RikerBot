@@ -138,6 +138,7 @@ target_compile_features(ExecCore PRIVATE cxx_std_20)
 target_compile_options(ExecCore PRIVATE ${OPTIONS})
 target_include_directories(ExecCore PRIVATE ${INCLUDES})
 target_link_libraries(ExecCore ${Boost_LOG_LIBRARY})
+add_dependencies(ExecCore swig_runtime)
 list(APPEND RIKER_DEPENDS ExecCore)
 
 
@@ -157,7 +158,7 @@ target_compile_features(IOCore PRIVATE cxx_std_20)
 target_compile_options(IOCore PRIVATE ${OPTIONS})
 target_include_directories(IOCore PRIVATE ${INCLUDES})
 target_link_libraries(IOCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
-add_dependencies(IOCore proto_gen)
+add_dependencies(IOCore proto_gen swig_runtime)
 list(APPEND RIKER_DEPENDS IOCore)
 
 
@@ -197,6 +198,7 @@ set_target_properties(WorldCore PROPERTIES OUTPUT_NAME CWorldCore
 target_compile_features(WorldCore PRIVATE cxx_std_20)
 target_compile_options(WorldCore PRIVATE ${OPTIONS})
 target_include_directories(WorldCore PRIVATE ${INCLUDES})
+add_dependencies(WorldCore swig_runtime)
 list(APPEND RIKER_DEPENDS WorldCore)
 
 
@@ -217,6 +219,7 @@ target_compile_features(StatusCore PRIVATE cxx_std_20)
 target_compile_options(StatusCore PRIVATE ${OPTIONS})
 target_include_directories(StatusCore PRIVATE ${INCLUDES})
 target_link_libraries(StatusCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
+add_dependencies(StatusCore swig_runtime)
 list(APPEND RIKER_DEPENDS StatusCore)
 
 
