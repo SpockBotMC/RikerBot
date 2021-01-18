@@ -15,6 +15,8 @@ def run(mcd, indent = '  '):
     "#include <string>",
     "#include <vector>",
     "#include <optional>",
+    "#include <functional>",
+    "#include \"shape_data.hpp\"",
     "",
     "namespace mcd {",
     "",
@@ -31,7 +33,6 @@ def run(mcd, indent = '  '):
     f"{i}std::uint16_t stack_size;",
     f"{i}std::uint8_t emit_light;",
     f"{i}std::uint8_t filter_light;",
-    f"{i}float hardness;",
     "",
     f"{i}std::string name;",
     f"{i}std::string display_name;",
@@ -40,10 +41,12 @@ def run(mcd, indent = '  '):
     f"{i}bool collidable;",
     f"{i}bool transparent;",
     "",
+    f"{i}std::vector<std::reference_wrapper<const std::vector<MCBoundingBox>>> shapes;",
     f"{i}std::vector<std::uint64_t> drops;",
     f"{i}std::vector<MCBlockPropertyData> props;",
     "",
     f"{i}std::optional<std::string> material;",
+    f"{i}std::optional<float> hardness;",
     "};",
     "",
     f"extern const MCBlockData block_data[{len(mcd.blocks_list)}];",
@@ -72,6 +75,9 @@ def run(mcd, indent = '  '):
   ]
 
   for block in mcd.blocks_list:
+    shapes = mcd.blockCollisionShapes['blocks'][block['name']]
+    if isinstance(shapes, int):
+      shapes = [shapes]
     block_cpp.extend((
       f"{i}{{",
       f"{i*2}.id = {block['id']},",
@@ -81,7 +87,6 @@ def run(mcd, indent = '  '):
       f"{i*2}.stack_size = {block['stackSize']},",
       f"{i*2}.emit_light = {block['emitLight']},",
       f"{i*2}.filter_light = {block['filterLight']},",
-      f"{i*2}.hardness = {block['hardness']},",
       "",
       f"{i*2}.name = \"{block['name']}\",",
       f"{i*2}.display_name = \"{block['displayName']}\",",
@@ -90,8 +95,8 @@ def run(mcd, indent = '  '):
       f"{i*2}.collidable = {str(block['boundingBox'] == 'block').lower()},",
       f"{i*2}.transparent = {str(block['transparent']).lower()},",
       "",
+      f"{i*2}.shapes = {{{', '.join(f'shapes[{x}]' for x in shapes)}}},",
       f"{i*2}.drops = {{{', '.join(str(x) for x in block['drops'])}}},",
-
     ))
 
     if block['states']:
@@ -106,6 +111,10 @@ def run(mcd, indent = '  '):
     if 'material' in block:
       block_cpp[-1] += ','
       block_cpp.append(f"{i*2}.material = \"{block['material']}\"")
+
+    if block['hardness'] is not None:
+      block_cpp[-1] += ','
+      block_cpp.append(f"{i*2}.hardness = {block['hardness']}")
 
     block_cpp.append(f"{i}}},")
 

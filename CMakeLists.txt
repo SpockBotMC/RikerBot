@@ -33,19 +33,27 @@ set(PROTO_GEN_FILES ${PROTO_INTERFACE} ${PROTO_IMPL}
     ${CMAKE_CURRENT_BINARY_DIR}/minecraft_protocol.hpp
     ${RKR_PROTO_DIR}/MinecraftProtocol.py)
 
+set(BLOCK_IMPL ${CMAKE_CURRENT_BINARY_DIR}/block_data.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/shape_data.cpp)
+set(BLOCK_GEN_FILES ${BLOCK_IMPL}
+    ${CMAKE_CURRENT_BINARY_DIR}/block_data.hpp
+    ${CMAKE_CURRENT_BINARY_DIR}/shape_data.hpp)
+
+set(MCD2CPP_GEN ${PROTO_GEN_FILES} ${BLOCK_GEN_FILES})
 
 add_custom_command(
-  OUTPUT ${PROTO_GEN_FILES}
+  OUTPUT ${MCD2CPP_GEN}
   COMMAND ${Python3_EXECUTABLE}
   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/generate.py ${MC_VERSION}
   COMMAND mv
   ARGS MinecraftProtocol.py ${RKR_PROTO_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS generate.py
-  COMMENT "Generating protocol files"
+  COMMENT "Generating mcd2cpp files"
   VERBATIM
 )
 add_custom_target(proto_gen DEPENDS ${PROTO_GEN_FILES})
+add_custom_target(block_gen DEPENDS ${BLOCK_GEN_FILES})
 
 
 add_custom_command(
