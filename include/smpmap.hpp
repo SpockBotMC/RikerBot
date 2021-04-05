@@ -40,6 +40,9 @@ private:
   block_id get(std::uint8_t x, std::uint8_t y, std::uint8_t z) const;
 };
 
+typedef std::vector<std::array<std::int32_t, 4>> IndexedCoordVec;
+typedef std::vector<std::pair<block_id, std::int32_t>> IndexedBlockVec;
+
 class ChunkColumn {
   friend class SMPMap;
 
@@ -47,14 +50,16 @@ class ChunkColumn {
   std::array<std::optional<ChunkSection>, 16> sections;
 
   void update(std::uint16_t bitmask, std::istream& data);
-  void update(std::uint8_t sec_coord, const std::vector<std::int64_t>&
-      records);
+  void update(std::uint8_t sec_coord, const std::vector<std::int64_t>& records);
   void update(std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block);
 
   block_id get(std::int32_t x, std::int32_t y, std::int32_t z) const;
-  std::vector<std::pair<block_id, std::int32_t>> get(
-      std::vector<std::array<std::int32_t, 4>>& coords) const;
+  IndexedBlockVec get(const IndexedCoordVec& coords) const;
 };
+
+
+typedef std::vector<std::array<std::int32_t, 3>> CoordVec;
+typedef std::vector<block_id> BlockVec;
 
 class SMPMap {
 public:
@@ -66,9 +71,8 @@ public:
   block_id get(const rkr::BlockCoord& coord) const;
   block_id get(std::int32_t x, std::int32_t y, std::int32_t z) const;
 
-  std::vector<block_id> get(const std::vector<rkr::BlockCoord>& coords) const;
-  std::vector<block_id> get(const std::vector<std::array<std::int32_t, 3>>&
-      coords) const;
+  BlockVec get(const std::vector<rkr::BlockCoord>& coords) const;
+  BlockVec get(const CoordVec& coords) const;
 
 private:
   std::unordered_map<ChunkCoord, ChunkColumn, boost::hash<ChunkCoord>>
