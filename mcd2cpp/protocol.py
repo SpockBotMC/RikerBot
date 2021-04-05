@@ -269,8 +269,8 @@ class mc_optnbt(simple_type):
 
   def encoder(self):
     return (
-      f"if({self.name}.has_value())",
-      f"{indent}{self.name}.value().encode_full(dest);",
+      f"if({self.name})",
+      f"{indent}{self.name}->encode_full(dest);",
       f"else",
       f"{indent}enc_byte(dest, nbt::TAG_END);"
     )
@@ -375,7 +375,7 @@ class mc_option(simple_type):
     self.field.name = f"{self.name}.value()"
     return [
       f"enc_byte(dest, {self.name}.has_value());",
-      f"if({self.name}.has_value()) {{",
+      f"if({self.name}) {{",
       *(indent + line for line in self.field.encoder()),
       "}"
     ]

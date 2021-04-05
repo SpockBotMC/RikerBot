@@ -399,8 +399,8 @@ void MCEntityMetadata::encode(std::ostream &dest) const {
       case METATAG_OPTCHAT: {
         auto str = std::get<std::optional<std::string>>(el.value);
         enc_byte(dest, str.has_value());
-        if(str.has_value())
-          enc_string(dest, str.value());
+        if(str)
+          enc_string(dest, *str);
       }
         break;
       case METATAG_SLOT:
@@ -415,15 +415,15 @@ void MCEntityMetadata::encode(std::ostream &dest) const {
       case METATAG_OPTPOSITION: {
         auto pos = std::get<std::optional<mc_position>>(el.value);
         enc_byte(dest, pos.has_value());
-        if(pos.has_value())
-          enc_position(dest, pos.value());
+        if(pos)
+          enc_position(dest, *pos);
       }
         break;
       case METATAG_OPTUUID: {
         auto uuid = std::get<std::optional<mc_uuid>>(el.value);
         enc_byte(dest, uuid.has_value());
-        if(uuid.has_value())
-          enc_uuid(dest, uuid.value());
+        if(uuid)
+          enc_uuid(dest, *uuid);
       }
         break;
       case METATAG_NBT:
@@ -440,8 +440,8 @@ void MCEntityMetadata::encode(std::ostream &dest) const {
       case METATAG_OPTVARINT: {
         auto varint = std::get<std::optional<std::int32_t>>(el.value);
         enc_byte(dest, varint.has_value());
-        if(varint.has_value())
-          enc_varint(dest, varint.value());
+        if(varint)
+          enc_varint(dest, *varint);
       }
         break;
     }
