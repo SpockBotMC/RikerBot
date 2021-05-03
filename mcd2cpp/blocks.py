@@ -41,7 +41,7 @@ def run(mcd, indent = '  '):
     f"{i}bool collidable;",
     f"{i}bool transparent;",
     "",
-    f"{i}std::vector<std::reference_wrapper<const std::vector<MCBoundingBox>>> shapes;",
+    f"{i}std::vector<std::reference_wrapper<const std::vector<MCBBoxData>>> shapes;",
     f"{i}std::vector<std::uint64_t> drops;",
     f"{i}std::vector<MCBlockPropertyData> props;",
     "",

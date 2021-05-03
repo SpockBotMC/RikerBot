@@ -88,19 +88,18 @@ void ChunkColumn::update(std::uint16_t bitmask, std::istream& data) {
 
 void ChunkColumn::update(std::uint8_t sec_coord,
     const std::vector<std::int64_t>& records) {
-  auto& section {sections[sec_coord]};
   for(auto rec : records) {
     auto y {static_cast<std::uint8_t>(rec&0xF)};
     auto z {static_cast<std::uint8_t>((rec>>=4)&0xF)};
     auto x {static_cast<std::uint8_t>((rec>>=4)&0xF)};
     auto block {static_cast<block_id>(rec>>4)};
-    section->update(x, y, z, block);
+    sections[sec_coord]->update(x, y, z, block);
   }
 }
 
 void ChunkColumn::update(std::uint8_t x, std::uint8_t y, std::uint8_t z,
    block_id block) {
-  auto& section = sections[y >> 4];
+  auto& section {sections[y >> 4]};
   if(!section)
     section.emplace();
   section->update(x, y & 0xF, z, block);
@@ -162,9 +161,8 @@ block_id SMPMap::get(std::int32_t x, std::int32_t y, std::int32_t z) const {
 
 block_id SMPMap::get(const BlockCoord& coord) const {
   std::shared_lock lock {mutex};
-  auto iter = chunks.find({coord.x >> 4, coord.z >> 4});
-  if(iter != chunks.end())
-    return iter->second.get(coord.x & 15, coord.y, coord.z & 15);
+  if(auto itr {chunks.find({coord.x >> 4, coord.z >> 4})}; itr != chunks.end())
+    return itr->second.get(coord.x & 15, coord.y, coord.z & 15);
   return 0;
 }
 
@@ -180,9 +178,8 @@ BlockVec SMPMap::get(const std::vector<BlockCoord>& coords) const {
   }
 
   for(const auto& [chunk_coord, pos_vec] : map) {
-    auto iter = chunks.find(chunk_coord);
-    if(iter != chunks.end())
-      for(const auto& [block_id, idx] : iter->second.get(pos_vec))
+    if(auto itr {chunks.find(chunk_coord)}; itr != chunks.end())
+      for(const auto& [block_id, idx] : itr->second.get(pos_vec))
         ret[idx] = block_id;
     else
       for(const auto& coord : pos_vec)

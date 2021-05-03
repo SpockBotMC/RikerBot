@@ -11,7 +11,7 @@ EventCore::EventCore(PluginLoader& ploader, bool ownership) :
 ev_id_type EventCore::register_event(const std::string& event_name) {
   if(event_map.contains(event_name))
     return event_map[event_name];
-  ev_id_type id = event_channels.size();
+  ev_id_type id {event_channels.size()};
   event_map[event_name] = id;
   event_channels.emplace_back(id);
   return id;
@@ -23,8 +23,7 @@ cb_id_type EventCore::register_callback(ev_id_type event_id, event_cb cb) {
 
 cb_id_type EventCore::register_callback(const std::string& event_name,
     event_cb cb) {
-  ev_id_type event_id = register_event(event_name);
-  return event_channels[event_id].subscribe(cb);
+  return event_channels[register_event(event_name)].subscribe(cb);
 }
 
 cb_id_type EventCore::register_callback(ev_id_type event_id, PyObject *cb) {
@@ -33,8 +32,7 @@ cb_id_type EventCore::register_callback(ev_id_type event_id, PyObject *cb) {
 
 cb_id_type EventCore::register_callback(const std::string& event_name,
     PyObject *cb) {
-  ev_id_type event_id = register_event(event_name);
-  return event_channels[event_id].subscribe(cb);
+  return event_channels[register_event(event_name)].subscribe(cb);
 }
 
 void EventCore::unregister_callback(ev_id_type event_id,

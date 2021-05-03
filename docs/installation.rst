@@ -16,7 +16,7 @@ Build Requirements:
 * SWIG_    >= 4.0
 * CMake_   >= 3.18
 * Any cmake-supported build system, Ninja_ is recommended for performance
-* Boost_   >= 1.72
+* Boost_   >= 1.73
 * Botan_   >= 2.0.0
 * zlib_, any version from this millenia
 * python-minecraft-data_, latest

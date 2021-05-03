@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'RikerBot'
-copyright = '2020, N. Vito Gamberini'
+copyright = '2021, N. Vito Gamberini'
 author = 'N. Vito Gamberini'
 
 master_doc = 'index'

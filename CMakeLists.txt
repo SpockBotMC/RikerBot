@@ -14,9 +14,10 @@ find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(SWIG 4.0 REQUIRED)
 include(UseSWIG)
 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 set(INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${Python3_INCLUDE_DIRS} ${BOTAN} include)
-set(OPTIONS -Wall -Wpedantic -DBOOST_ASIO_DISABLE_CONCEPTS)
+set(OPTIONS -Wall -Wpedantic)
 
 set(RIKER_DEPENDS "")
 
@@ -27,11 +28,13 @@ set(RKR_PROTO_DIR ${RKR_PACKAGE_ROOT}/proto)
 
 set(PROTO_INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/Proto${MC_USCORE}.i)
 set(PROTO_IMPL ${CMAKE_CURRENT_BINARY_DIR}/proto_${MC_USCORE}.cpp)
-set(PROTO_GEN_FILES ${PROTO_INTERFACE} ${PROTO_IMPL}
+
+set(PROTO_GEN_SOURCES ${PROTO_IMPL}
     ${CMAKE_CURRENT_BINARY_DIR}/proto_${MC_USCORE}.hpp
     ${CMAKE_CURRENT_BINARY_DIR}/particletypes.hpp
     ${CMAKE_CURRENT_BINARY_DIR}/minecraft_protocol.hpp
     ${RKR_PROTO_DIR}/MinecraftProtocol.py)
+set(PROTO_GEN_FILES ${PROTO_GEN_SOURCES} ${PROTO_INTERFACE})
 
 set(BLOCK_IMPL ${CMAKE_CURRENT_BINARY_DIR}/block_data.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/shape_data.cpp)
@@ -66,161 +69,20 @@ add_custom_command(
 add_custom_target(swig_runtime DEPENDS swigpyrun.hpp)
 
 
-# Protocol
-set_property(SOURCE ${PROTO_INTERFACE} PROPERTY CPLUSPLUS ON)
-swig_add_library(Proto
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PROTO_DIR}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES ${PROTO_INTERFACE} ${PROTO_IMPL} src/datautils.cpp
-)
-set_target_properties(Proto PROPERTIES OUTPUT_NAME Proto${MC_USCORE}
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PROTO_DIR})
-target_compile_features(Proto PRIVATE cxx_std_20)
-target_compile_options(Proto PRIVATE ${OPTIONS})
-target_include_directories(Proto PRIVATE ${INCLUDES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/swig)
-add_dependencies(Proto proto_gen)
-list(APPEND RIKER_DEPENDS Proto)
+include(cmake/Proto.cmake)
 
+include(cmake/PluginLoader.cmake)
 
-# Plugin Loader
-set_property(SOURCE swig/PluginLoader.i PROPERTY CPLUSPLUS ON)
-swig_add_library(PluginLoader
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PACKAGE_ROOT}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/PluginLoader.i src/plugin_loader.cpp
-)
-set_target_properties(PluginLoader PROPERTIES OUTPUT_NAME CPluginLoader
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PACKAGE_ROOT})
-target_compile_features(PluginLoader PRIVATE cxx_std_20)
-target_compile_options(PluginLoader PRIVATE ${OPTIONS})
-target_include_directories(PluginLoader PRIVATE ${INCLUDES})
-add_dependencies(PluginLoader swig_runtime)
-list(APPEND RIKER_DEPENDS PluginLoader)
+include(cmake/Event.cmake)
 
+include(cmake/Exec.cmake)
 
-# Event Core
-set_property(SOURCE swig/EventCore.i PROPERTY CPLUSPLUS ON)
-swig_add_library(EventCore
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PLUGIN_DIR}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/EventCore.i src/event_core.cpp src/plugin_loader.cpp
-      src/plugin_base.cpp
-)
-set_target_properties(EventCore PROPERTIES OUTPUT_NAME CEventCore
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
-target_compile_features(EventCore PRIVATE cxx_std_20)
-target_compile_options(EventCore PRIVATE ${OPTIONS})
-target_include_directories(EventCore PRIVATE ${INCLUDES})
-add_dependencies(EventCore swig_runtime)
-list(APPEND RIKER_DEPENDS EventCore)
+include(cmake/IO.cmake)
 
+include(cmake/Logger.cmake)
 
-# Exec Core
-set_property(SOURCE swig/ExecCore.i PROPERTY CPLUSPLUS ON)
-swig_add_library(ExecCore
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PLUGIN_DIR}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/ExecCore.i src/exec_core.cpp src/plugin_loader.cpp
-      src/plugin_base.cpp src/event_core.cpp
-)
-set_target_properties(ExecCore PROPERTIES OUTPUT_NAME CExecCore
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
-target_compile_features(ExecCore PRIVATE cxx_std_20)
-target_compile_options(ExecCore PRIVATE ${OPTIONS})
-target_include_directories(ExecCore PRIVATE ${INCLUDES})
-target_link_libraries(ExecCore ${Boost_LOG_LIBRARY})
-add_dependencies(ExecCore swig_runtime)
-list(APPEND RIKER_DEPENDS ExecCore)
+include(cmake/World.cmake)
 
-
-# IO Core
-set_property(SOURCE swig/IOCore.i PROPERTY CPLUSPLUS ON)
-swig_add_library(IOCore
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PLUGIN_DIR}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/IOCore.i src/io_core.cpp src/plugin_loader.cpp
-      src/plugin_base.cpp src/event_core.cpp src/datautils.cpp ${PROTO_IMPL}
-)
-set_target_properties(IOCore PROPERTIES OUTPUT_NAME CIOCore
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
-target_compile_features(IOCore PRIVATE cxx_std_20)
-target_compile_options(IOCore PRIVATE ${OPTIONS})
-target_include_directories(IOCore PRIVATE ${INCLUDES})
-target_link_libraries(IOCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
-add_dependencies(IOCore proto_gen swig_runtime)
-list(APPEND RIKER_DEPENDS IOCore)
-
-
-# Logger
-set_property(SOURCE swig/Logger.i PROPERTY CPLUSPLUS ON)
-swig_add_library(Logger
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PACKAGE_ROOT}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/Logger.i src/logger.cpp
-)
-set_target_properties(Logger PROPERTIES OUTPUT_NAME CLogger
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PACKAGE_ROOT})
-# Broken on C++20 until 1.73, changed this once distros have decent support for
-# 1.73 (looking at you Arch)
-target_compile_features(Logger PRIVATE cxx_std_17)
-target_compile_options(Logger PRIVATE ${OPTIONS})
-target_include_directories(Logger PRIVATE ${INCLUDES})
-target_link_libraries(Logger ${Boost_LOG_LIBRARY})
-list(APPEND RIKER_DEPENDS Logger)
-
-
-# World Core
-set_property(SOURCE swig/WorldCore.i PROPERTY CPLUSPLUS ON)
-swig_add_library(WorldCore
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PLUGIN_DIR}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/WorldCore.i src/world_core.cpp src/smpmap.cpp
-      src/plugin_loader.cpp src/plugin_base.cpp src/datautils.cpp
-      src/event_core.cpp
-)
-set_target_properties(WorldCore PROPERTIES OUTPUT_NAME CWorldCore
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
-target_compile_features(WorldCore PRIVATE cxx_std_20)
-target_compile_options(WorldCore PRIVATE ${OPTIONS})
-target_include_directories(WorldCore PRIVATE ${INCLUDES})
-add_dependencies(WorldCore swig_runtime)
-list(APPEND RIKER_DEPENDS WorldCore)
-
-
-# Status Core
-set_property(SOURCE swig/StatusCore.i PROPERTY CPLUSPLUS ON)
-swig_add_library(StatusCore
-  LANGUAGE python
-  OUTPUT_DIR ${RKR_PLUGIN_DIR}
-  OUTFILE_DIR ${CMAKE_CURRENT_BINARY_DIR}
-  SOURCES swig/StatusCore.i src/status_core.cpp src/plugin_base.cpp
-      src/plugin_loader.cpp src/event_core.cpp src/io_core.cpp ${PROTO_IMPL}
-      src/datautils.cpp
-)
-set_target_properties(StatusCore PROPERTIES OUTPUT_NAME CStatusCore
-    SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE SWIG_COMPILE_OPTIONS -py3
-    LIBRARY_OUTPUT_DIRECTORY ${RKR_PLUGIN_DIR})
-target_compile_features(StatusCore PRIVATE cxx_std_20)
-target_compile_options(StatusCore PRIVATE ${OPTIONS})
-target_include_directories(StatusCore PRIVATE ${INCLUDES})
-target_link_libraries(StatusCore ${Boost_LOG_LIBRARY} ${LIBBOTAN})
-add_dependencies(StatusCore swig_runtime)
-list(APPEND RIKER_DEPENDS StatusCore)
-
+include(cmake/Status.cmake)
 
 add_custom_target(rikerbot_all DEPENDS ${RIKER_DEPENDS})

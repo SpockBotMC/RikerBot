@@ -17,16 +17,16 @@ def run(mcd, indent = '  '):
     "",
     "union MCPoint {",
     f"{i}struct {{",
-    f"{i*2}float x, y, z;",
+    f"{i*2}double x, y, z;",
     f"{i}}};",
-    f"{i}float vec[3];",
+    f"{i}double vec[3];",
     "};",
     "",
-    "struct MCBoundingBox {",
+    "struct MCBBoxData {",
     f"{i}MCPoint min, max;",
     "};",
     "",
-    f"extern const std::vector<MCBoundingBox> shapes[{len(mcd.blockCollisionShapes['shapes'])}];",
+    f"extern const std::vector<MCBBoxData> shapes[{len(mcd.blockCollisionShapes['shapes'])}];",
     "",
     "} // namespace mcd",
     "#endif // SHAPEDATA_HPP",
@@ -45,7 +45,7 @@ def run(mcd, indent = '  '):
     "",
     "namespace mcd {",
     ""
-    "const std::vector<MCBoundingBox> shapes[] = {",
+    "const std::vector<MCBBoxData> shapes[] = {",
   ]
 
   for shape in mcd.blockCollisionShapes['shapes'].values():
