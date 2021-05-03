@@ -27,25 +27,26 @@ Build Requirements:
 Build Proccess
 ==============
 
-Once you've got the requirements, you need to build the C++ extensions using
-cmake. If you are only interested in installing RikerBot as a user of the
-framework and not developing C++ extensions yourself, you can build all of the
-default extensions by running the following command in the project root::
+Once you've got the requirements, you can build and install the framework from
+the source root directory with::
 
-  cmake . && cmake --build . --target rikerbot_all
+  pip install .
 
-Otherwise configure the cmake project however you like with your normal cmake
-workflow.
+RikerBot should be successfully installed. You can verify the process worked by
+running ``import rikerbot`` from the Python REPL.
 
-Once the extensions are built, you can build the python wheel by running the
-following in the project root::
+If you're interested in developing C++ extensions yourself you may wish to
+build locally to preserve the cmake cache between compiles, you can do this
+with::
 
   python setup.py bdist_wheel
 
-This will create a ``dist`` folder in the project root containing a ``.whl``
-file. You can install this file with ``pip install [file]`` and RikerBot should
-be successfully installed. You can verify the process worked by running
-``import rikerbot`` from the Python REPL.
+This will create a ``dist`` folder containing the compiled module, which can
+be installed with::
+
+  pip install [file].whl
+
+You may also wish to simply use cmake directly, and this is also supported.
 
 .. _SWIG: http://www.swig.org/
 .. _cmake: https://cmake.org/

@@ -15,4 +15,3 @@ jobs:
           CC: gcc-10
           CXX: g++-10
       - run: cmake --build . --target rikerbot_all
-      - run: python setup.py bdist_wheel
