@@ -11,13 +11,12 @@ PluginBase* PluginLoader::require(const std::string& class_name) {
 
 PyObject* PluginLoader::py_require(const std::string& class_name) {
   if(class_map.contains(class_name)) {
-    PluginBase* pl = class_map[class_name];
-    if(pl->type_query)
+    if(auto pl {class_map[class_name]}; pl->type_query)
       return SWIG_NewPointerObj(static_cast<void*>(pl),
           SWIG_TypeQuery(pl->type_query.value().c_str()), 0);
     Py_RETURN_NONE;
   } else if(pyo_map.contains(class_name)) {
-    PyObject* pyo = pyo_map[class_name];
+    PyObject* pyo {pyo_map[class_name]};
     Py_INCREF(pyo);
     return pyo;
   }

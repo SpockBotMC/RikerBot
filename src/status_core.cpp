@@ -30,8 +30,8 @@ void StatusCore::handle_spawn(ev_id_type ev_id) {
 }
 
 void StatusCore::handle_ppl(const void* data) {
-  auto packet = static_cast<const mcd::ClientboundPosition*>(data);
-  std::int8_t flags = packet->flags;
+  auto packet {static_cast<const mcd::ClientboundPosition*>(data)};
+  std::int8_t flags {packet->flags};
 
   flags&0x01 ? position.x += packet->x : position.x = packet->x;
   flags&0x02 ? position.y += packet->y : position.y = packet->y;

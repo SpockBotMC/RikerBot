@@ -65,8 +65,8 @@ void EventCore::emit(ev_id_type event_id, const void* data,
     const std::string& type_query) {
   event_stack.push_back(event_id);
   event_channels[event_id].emit(data);
-  PyObject *pyo = SWIG_NewPointerObj(const_cast<void*>(data),
-      SWIG_TypeQuery(type_query.c_str()), 0);
+  PyObject *pyo {SWIG_NewPointerObj(const_cast<void*>(data),
+      SWIG_TypeQuery(type_query.c_str()), 0)};
   event_channels[event_id].emit(pyo);
   Py_DECREF(pyo);
   event_stack.pop_back();

@@ -6,7 +6,7 @@ WorldCore::WorldCore(PluginLoader& ploader, bool ownership) :
     PluginBase("rkr::WorldCore *") {
 
   ploader.provide("World", this, ownership);
-  auto ev = static_cast<EventCore *>(ploader.require("Event"));
+  auto ev {static_cast<EventCore *>(ploader.require("Event"))};
 
   ev->register_callback("ClientboundMapChunk",
       [&](ev_id_type, const void* data) {chunk_update(data);});

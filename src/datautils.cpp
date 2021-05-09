@@ -208,7 +208,7 @@ std::int64_t dec_varint(std::istream &src) {
   return static_cast<std::int64_t>(dest);
 }
 
-void enc_string(std::ostream &dest, std::string src) {
+void enc_string(std::ostream &dest, const std::string& src) {
   enc_varint(dest, src.size());
   dest.write(src.data(), src.size());
 }
@@ -219,7 +219,7 @@ std::string dec_string(std::istream &src) {
   return str;
 }
 
-void enc_uuid(std::ostream &dest, mc_uuid src) {
+void enc_uuid(std::ostream &dest, const mc_uuid& src) {
   enc_be64(dest, src.msb);
   enc_be64(dest, src.lsb);
 }
@@ -232,17 +232,16 @@ mc_uuid dec_uuid(std::istream &src) {
 
 // From MSB to LSB x: 26-bits, z: 26-bits, y: 12-bits
 // each is an independent signed 2-complement integer
-void enc_position(std::ostream &dest, mc_position src) {
-  uint64_t tmp = (
+void enc_position(std::ostream &dest, const mc_position& src) {
+  enc_be64(dest, {
     (static_cast<std::uint64_t>(src.x) & 0x3FFFFFFUL) << 38 |
     (static_cast<std::uint64_t>(src.z) & 0x3FFFFFFUL) << 12 |
     (static_cast<std::uint64_t>(src.y) & 0xFFFUL)
-  );
-  enc_be64(dest, tmp);
+  });
 }
 mc_position dec_position(std::istream &src) {
   mc_position dest;
-  std::uint64_t tmp = dec_be64(src);
+  std::uint64_t tmp {dec_be64(src)};
   if((dest.x = tmp >> 38) & (1UL << 25))
     dest.x -= 1UL << 26;
   if((dest.z = tmp >> 12 & 0x3FFFFFFUL) & (1UL << 25))
@@ -323,7 +322,7 @@ void MCParticle::decode(std::istream &src, particle_type p_type) {
 void MCSmelting::encode(std::ostream &dest) const {
   enc_string(dest, group);
   enc_varint(dest, ingredient.size());
-  for(auto &el : ingredient)
+  for(const auto &el : ingredient)
     el.encode(dest);
   result.encode(dest);
   enc_bef32(dest, experience);
@@ -343,7 +342,7 @@ void MCSmelting::decode(std::istream &src) {
 void MCTag::encode(std::ostream &dest) const {
   enc_string(dest, tag_name);
   enc_varint(dest, entries.size());
-  for(auto &el : entries)
+  for(const auto &el : entries)
     enc_varint(dest, el);
 }
 
@@ -355,12 +354,13 @@ void MCTag::decode(std::istream &src) {
 }
 
 void MCEntityEquipment::encode(std::ostream &dest) const {
-  for(auto el = equipments.begin(); el != --equipments.end(); ++el) {
-    enc_byte(dest, 0x80 | el->slot);
-    el->item.encode(dest);
+  auto last {--equipments.end()};
+  for(auto itr {equipments.begin()}; itr != last; ++itr) {
+    enc_byte(dest, 0x80 | itr->slot);
+    itr->item.encode(dest);
   }
-  enc_byte(dest, equipments.back().slot);
-  equipments.back().item.encode(dest);
+  enc_byte(dest, last->slot);
+  last->item.encode(dest);
 }
 
 void MCEntityEquipment::decode(std::istream &src) {
@@ -397,7 +397,7 @@ void MCEntityMetadata::encode(std::ostream &dest) const {
         enc_string(dest, std::get<std::string>(el.value));
         break;
       case METATAG_OPTCHAT: {
-        auto str = std::get<std::optional<std::string>>(el.value);
+        auto str {std::get<std::optional<std::string>>(el.value)};
         enc_byte(dest, str.has_value());
         if(str)
           enc_string(dest, *str);
@@ -407,20 +407,20 @@ void MCEntityMetadata::encode(std::ostream &dest) const {
         std::get<MCSlot>(el.value).encode(dest);
         break;
       case METATAG_ROTATION:
-        for(auto& el : std::get<std::array<float, 3>>(el.value))
+        for(const auto& el : std::get<std::array<float, 3>>(el.value))
           enc_bef32(dest, el);
       case METATAG_POSITION:
         enc_position(dest, std::get<mc_position>(el.value));
         break;
       case METATAG_OPTPOSITION: {
-        auto pos = std::get<std::optional<mc_position>>(el.value);
+        auto pos {std::get<std::optional<mc_position>>(el.value)};
         enc_byte(dest, pos.has_value());
         if(pos)
           enc_position(dest, *pos);
       }
         break;
       case METATAG_OPTUUID: {
-        auto uuid = std::get<std::optional<mc_uuid>>(el.value);
+        auto uuid {std::get<std::optional<mc_uuid>>(el.value)};
         enc_byte(dest, uuid.has_value());
         if(uuid)
           enc_uuid(dest, *uuid);
@@ -434,11 +434,11 @@ void MCEntityMetadata::encode(std::ostream &dest) const {
         std::get<MCParticle>(el.value).encode(dest);
         break;
       case METATAG_VILLAGERDATA:
-        for(auto& el : std::get<std::array<std::int32_t, 3>>(el.value))
+        for(const auto& el : std::get<std::array<std::int32_t, 3>>(el.value))
           enc_varint(dest, el);
         break;
       case METATAG_OPTVARINT: {
-        auto varint = std::get<std::optional<std::int32_t>>(el.value);
+        auto varint {std::get<std::optional<std::int32_t>>(el.value)};
         enc_byte(dest, varint.has_value());
         if(varint)
           enc_varint(dest, *varint);
@@ -451,9 +451,9 @@ void MCEntityMetadata::encode(std::ostream &dest) const {
 
 void MCEntityMetadata::decode(std::istream &src) {
   data.clear();
-  std::uint8_t index = dec_byte(src);
+  std::uint8_t index {dec_byte(src)};
   while(index != 0xFF) {
-    auto& tag = data.emplace_back();
+    auto& tag {data.emplace_back()};
     tag.index = index;
     tag.type = dec_varint(src);
     switch(tag.type) {
@@ -475,59 +475,46 @@ void MCEntityMetadata::decode(std::istream &src) {
       case METATAG_CHAT:
         tag.value = dec_string(src);
         break;
-      case METATAG_OPTCHAT: {
-        auto& str = tag.value.emplace<std::optional<std::string>>();
-        if(dec_byte(src))
+      case METATAG_OPTCHAT:
+        if(auto& str {tag.value.emplace<std::optional<std::string>>()};
+            dec_byte(src))
           str = dec_string(src);
-      }
         break;
-      case METATAG_SLOT: {
-        auto& slot = tag.value.emplace<MCSlot>();
-        slot.decode(src);
-      }
+      case METATAG_SLOT:
+        tag.value.emplace<MCSlot>().decode(src);
         break;
-      case METATAG_ROTATION: {
-        auto& rot = tag.value.emplace<std::array<float, 3>>();
-        for(auto &el : rot)
+      case METATAG_ROTATION:
+        for(auto &el : tag.value.emplace<std::array<float, 3>>())
           el = dec_bef32(src);
-      }
         break;
       case METATAG_POSITION:
         tag.value = dec_position(src);
         break;
-      case METATAG_OPTPOSITION: {
-        auto& pos = tag.value.emplace<std::optional<mc_position>>();
-        if(dec_byte(src))
+      case METATAG_OPTPOSITION:
+        if(auto& pos {tag.value.emplace<std::optional<mc_position>>()};
+            dec_byte(src))
           pos = dec_position(src);
-      }
         break;
-      case METATAG_OPTUUID: {
-        auto& uuid = tag.value.emplace<std::optional<mc_uuid>>();
-        if(dec_byte(src))
+      case METATAG_OPTUUID:
+        if(auto& uuid {tag.value.emplace<std::optional<mc_uuid>>()};
+            dec_byte(src))
           uuid = dec_uuid(src);
-      }
         break;
-      case METATAG_NBT: {
-        auto& nbt_tag = tag.value.emplace<nbt::TagCompound>();
-        nbt_tag.decode_full(src);
-      }
+      case METATAG_NBT:
+        tag.value.emplace<nbt::TagCompound>().decode_full(src);
         break;
-      case METATAG_PARTICLE: {
-        auto& particle = tag.value.emplace<MCParticle>();
-        particle.decode(src, static_cast<particle_type>(dec_varint(src)));
-      }
+      case METATAG_PARTICLE:
+        tag.value.emplace<MCParticle>().decode(src,
+            static_cast<particle_type>(dec_varint(src)));
         break;
-      case METATAG_VILLAGERDATA: {
-        auto& data = tag.value.emplace<std::array<std::int32_t, 3>>();
-        for(auto &el : data)
+      case METATAG_VILLAGERDATA:
+        for(auto &el : tag.value.emplace<std::array<std::int32_t, 3>>())
           el = dec_varint(src);
-      }
         break;
-      case METATAG_OPTVARINT: {
-        auto& varint = tag.value.emplace<std::optional<std::int32_t>>();
-        if(dec_byte(src))
+      case METATAG_OPTVARINT:
+        if(auto& varint {tag.value.emplace<std::optional<std::int32_t>>()};
+            dec_byte(src))
           varint = dec_varint(src);
-      }
         break;
     }
     index = dec_byte(src);

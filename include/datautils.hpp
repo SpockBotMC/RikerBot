@@ -75,13 +75,13 @@ std::size_t size_varlong(std::uint64_t varlong);
 void enc_varint(std::ostream &dest, std::uint64_t src);
 std::int64_t dec_varint(std::istream &src);
 
-void enc_string(std::ostream &dest, std::string src);
+void enc_string(std::ostream &dest, const std::string& src);
 std::string dec_string(std::istream &src);
 
-void enc_uuid(std::ostream &dest, mc_uuid src);
+void enc_uuid(std::ostream &dest, const mc_uuid& src);
 mc_uuid dec_uuid(std::istream &src);
 
-void enc_position(std::ostream &dest, mc_position src);
+void enc_position(std::ostream &dest, const mc_position& src);
 mc_position dec_position(std::istream &src);
 
 void enc_buffer(std::ostream &dest, const std::vector<char> &src);

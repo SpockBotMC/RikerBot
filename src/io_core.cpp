@@ -59,8 +59,8 @@ IOCore::IOCore(PluginLoader& ploader, net::io_context &ctx, bool ownership) :
   for(int state_itr = 0; state_itr < mcd::STATE_MAX; state_itr++) {
     for(int dir_itr = 0; dir_itr < mcd::DIRECTION_MAX; dir_itr++) {
       for(int id = 0; id < mcd::protocol_max_ids[state_itr][dir_itr]; id++) {
-        auto name = mcd::protocol_cstrings[state_itr][dir_itr][id];
-        auto event_id = ev->register_event(name);
+        auto name {mcd::protocol_cstrings[state_itr][dir_itr][id]};
+        auto event_id {ev->register_event(name)};
         packet_event_ids[state_itr][dir_itr].push_back(event_id);
       }
     }
@@ -98,19 +98,19 @@ void IOCore::write_packet(const boost::asio::streambuf& header,
 }
 
 void IOCore::encode_packet(const mcd::Packet& packet) {
-  auto& header_buf = write_bufs.emplace_back();
-  auto& body_buf = write_bufs.emplace_back();
-  std::ostream header_os(&header_buf), body_os(&body_buf);
+  auto& header_buf {write_bufs.emplace_back()};
+  auto& body_buf {write_bufs.emplace_back()};
+  std::ostream header_os {&header_buf}, body_os {&body_buf};
 
   mcd::enc_varint(body_os, packet.packet_id);
   packet.encode(body_os);
-  auto packet_size = body_buf.size();
+  auto packet_size {body_buf.size()};
 
   if(compressed && packet_size > threshold) {
     // Worst case scenario for a single-digit length packet being compressed
     // due to an unreasonable compression threshold. Shouldn't be more than
     // 11 bytes of overhead.
-    auto avail_out = packet_size + 11;
+    auto avail_out {packet_size + 11};
     // Beware, C-style casts ahead
     deflator.next_out = (Bytef*) body_buf.prepare(avail_out).data();
     deflator.avail_out = avail_out;
@@ -125,8 +125,9 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
     body_buf.commit(avail_out - deflator.avail_out);
     body_buf.consume(packet_size);
 
-    auto compressed_size = body_buf.size();
-    int32_t total_size = compressed_size + mcd::size_varint(packet_size);
+    auto compressed_size {body_buf.size()};
+    auto total_size {compressed_size + mcd::size_varint(packet_size)};
+
     mcd::enc_varint(header_os, total_size);
     mcd::enc_varint(header_os, packet_size);
   } else {
@@ -195,8 +196,9 @@ void IOCore::write_handler(const sys::error_code& ec, std::size_t len) {
 }
 
 void IOCore::read_header() {
-  int varnum = mcd::verify_varint(
-      static_cast<const char *>(read_buf.data().data()), read_buf.size());
+  auto varnum {mcd::verify_varint(static_cast<const char *>(
+      read_buf.data().data()), read_buf.size())};
+
   if(varnum == mcd::VARNUM_INVALID) {
     BOOST_LOG_TRIVIAL(fatal) << "Invalid header";
     exit(-1);
@@ -205,7 +207,7 @@ void IOCore::read_header() {
     sock.async_read_some(in_buf, [&](const sys::error_code& ec,
         std::size_t len) {header_handler(ec, len);});
   } else {
-    auto varint = mcd::dec_varint(read_is);
+    auto varint {mcd::dec_varint(read_is)};
     if(read_buf.size() >= static_cast<std::uint64_t>(varint)) {
       read_body(varint);
       return;
@@ -241,34 +243,37 @@ void IOCore::body_handler(const sys::error_code& ec, std::size_t len,
 
 void IOCore::read_body(size_t len) {
   static boost::asio::streambuf pak_buf;
-  static std::istream pak_is(&pak_buf);
+  static std::istream pak_is {&pak_buf};
 
-  auto orig_size = read_buf.size();
+  auto orig_size {read_buf.size()};
   int64_t uncompressed_len;
 
   if(compressed) {
     uncompressed_len = mcd::dec_varint(read_is);
     if(uncompressed_len) {
-      auto remaining_buf = len - (orig_size - read_buf.size());
+      auto remaining_buf {len - (orig_size - read_buf.size())};
+
       inflator.next_out = (unsigned char*) pak_buf.prepare(
           uncompressed_len).data();
       inflator.avail_out = uncompressed_len;
       inflator.next_in = (unsigned char *) read_buf.data().data();
       inflator.avail_in = remaining_buf;
-      auto err = inflate(&inflator, Z_FINISH);
-      if(err != Z_STREAM_END) {
+
+      if(auto err {inflate(&inflator, Z_FINISH)}; err != Z_STREAM_END) {
         BOOST_LOG_TRIVIAL(fatal) << "Err: " << err << " " << inflator.msg;
         exit(-1);
       }
+
       inflateReset(&inflator);
       pak_buf.commit(uncompressed_len);
       read_buf.consume(remaining_buf);
     }
   }
 
-  std::istream& is_ref = compressed && uncompressed_len ? pak_is : read_is;
-  int32_t packet_id = mcd::dec_varint(is_ref);
+  std::istream& is_ref {compressed && uncompressed_len ? pak_is : read_is};
+  auto packet_id {static_cast<int>(mcd::dec_varint(is_ref))};
   std::unique_ptr<mcd::Packet> packet;
+
   try {
     packet = mcd::make_packet(state, mcd::CLIENTBOUND, packet_id);
   } catch(std::exception&) {
@@ -293,24 +298,25 @@ void IOCore::read_body(size_t len) {
 }
 
 void IOCore::encryption_begin_handler(const void* data) {
-  auto packet = static_cast<const mcd::ClientboundEncryptionBegin*>(data);
-  Botan::DataSource_Memory mem(reinterpret_cast<const std::uint8_t*>(
-      packet->publicKey.data()), packet->publicKey.size());
+  auto packet {static_cast<const mcd::ClientboundEncryptionBegin*>(data)};
 
-  auto& rng = Botan::system_rng();
-  auto key = std::unique_ptr<Botan::Public_Key>(Botan::X509::load_key(mem));
-  Botan::PK_Encryptor_EME enc(*key, rng, "PKCS1v15");
+  Botan::DataSource_Memory mem {reinterpret_cast<const std::uint8_t*>(
+      packet->publicKey.data()), packet->publicKey.size()};
+
+  auto& rng {Botan::system_rng()};
+  std::unique_ptr<Botan::Public_Key> key {Botan::X509::load_key(mem)};
+  Botan::PK_Encryptor_EME enc {*key, rng, "PKCS1v15"};
 
   mcd::ServerboundEncryptionBegin resp;
 
   // This nonsense is necessary because char and uint8_t vectors don't play
-  // nicely with one another. It is almost certainly a standards violation.
-  auto rslt = enc.encrypt(shared_secret, std::size(shared_secret), rng);
-  resp.sharedSecret = std::move(*reinterpret_cast<std::vector<char>*>(&rslt));
+  // nicely with one another. It is absolutely a standards violation.
+  auto rslt {enc.encrypt(shared_secret, std::size(shared_secret), rng)};
+  resp.sharedSecret = reinterpret_cast<std::vector<char>&&>(rslt);
 
   rslt = enc.encrypt(reinterpret_cast<const std::uint8_t*>(
       packet->verifyToken.data()), packet->verifyToken.size(), rng);
-  resp.verifyToken = std::move(*reinterpret_cast<std::vector<char>*>(&rslt));
+  resp.verifyToken = reinterpret_cast<std::vector<char>&&>(rslt);
 
   encode_packet(resp);
 }
@@ -331,7 +337,7 @@ void IOCore::enable_compression(const void* data) {
 }
 
 void IOCore::transition_state(const void* data) {
-  auto packet = static_cast<const mcd::ServerboundSetProtocol*>(data);
+  auto packet {static_cast<const mcd::ServerboundSetProtocol*>(data)};
   state = static_cast<mcd::packet_state>(packet->nextState);
 }
 

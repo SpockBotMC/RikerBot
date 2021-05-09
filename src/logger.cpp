@@ -6,7 +6,7 @@
 namespace rkr {
 
 void set_log_level(const severity_level sev) {
-  auto x = boost::log::core::get();
+  auto x {boost::log::core::get()};
   switch(sev) {
     case level_trace:
       x->set_filter(
