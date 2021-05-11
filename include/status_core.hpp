@@ -1,10 +1,10 @@
 #ifndef RKR_STATUS_CORE_HPP
 #define RKR_STATUS_CORE_HPP
 
-#include "plugin_loader.hpp"
-#include "plugin_base.hpp"
 #include "event_core.hpp"
 #include "io_core.hpp"
+#include "plugin_base.hpp"
+#include "plugin_loader.hpp"
 
 namespace rkr {
 
@@ -43,8 +43,6 @@ private:
   void handle_tick();
 };
 
-
 } // namespace rkr
-
 
 #endif // RKR_STATUS_CORE_HPP

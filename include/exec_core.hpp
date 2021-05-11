@@ -10,15 +10,14 @@ namespace sys = boost::system;
 #endif
 #endif
 
-#include "plugin_loader.hpp"
-#include "plugin_base.hpp"
 #include "event_core.hpp"
+#include "plugin_base.hpp"
+#include "plugin_loader.hpp"
 
 namespace rkr {
 
 class ExecCore : public PluginBase {
 public:
-
   ExecCore(rkr::PluginLoader& ploader, bool ownership = false);
 
   void run();

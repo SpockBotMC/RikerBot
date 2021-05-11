@@ -16,8 +16,8 @@ void ChunkSection::update(std::istream& data) {
     update_direct(data, bits_per_block);
 }
 
-void ChunkSection::update_direct(std::istream& data,
-    std::uint8_t bits_per_block) {
+void ChunkSection::update_direct(
+    std::istream& data, std::uint8_t bits_per_block) {
   auto len {static_cast<std::int32_t>(mcd::dec_varint(data))};
   int bits_remaining {0};
   std::uint64_t cur_long {0};
@@ -29,7 +29,7 @@ void ChunkSection::update_direct(std::istream& data,
       bits_remaining = 64;
       len--;
     }
-    block = static_cast<block_id>(cur_long&mask);
+    block = static_cast<block_id>(cur_long & mask);
     cur_long >>= bits_per_block;
     bits_remaining -= bits_per_block;
   }
@@ -40,8 +40,8 @@ void ChunkSection::update_direct(std::istream& data,
     data.ignore(len * sizeof(cur_long));
 }
 
-void ChunkSection::update_palette(std::istream& data,
-    std::uint8_t bits_per_block) {
+void ChunkSection::update_palette(
+    std::istream& data, std::uint8_t bits_per_block) {
   std::vector<block_id> palette(mcd::dec_varint(data));
   for(auto& indexed_block : palette)
     indexed_block = static_cast<block_id>(mcd::dec_varint(data));
@@ -57,7 +57,7 @@ void ChunkSection::update_palette(std::istream& data,
       bits_remaining = 64;
       len--;
     }
-    block = palette[cur_long&mask];
+    block = palette[cur_long & mask];
     cur_long >>= bits_per_block;
     bits_remaining -= bits_per_block;
   }
@@ -66,19 +66,19 @@ void ChunkSection::update_palette(std::istream& data,
     data.ignore(len * sizeof(cur_long));
 }
 
-void ChunkSection::update(std::uint8_t x, std::uint8_t y, std::uint8_t z,
-    block_id block) {
-  blocks[x + (z + y*16)*16] = block;
+void ChunkSection::update(
+    std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block) {
+  blocks[x + (z + y * 16) * 16] = block;
 }
 
-block_id ChunkSection::get(std::uint8_t x, std::uint8_t y, std::uint8_t z)
-    const {
-  return blocks[x + (z + y*16)*16];
+block_id ChunkSection::get(
+    std::uint8_t x, std::uint8_t y, std::uint8_t z) const {
+  return blocks[x + (z + y * 16) * 16];
 }
 
 void ChunkColumn::update(std::uint16_t bitmask, std::istream& data) {
   for(unsigned int i = 0; i < std::size(sections); i++)
-    if(bitmask & (1<<i)) {
+    if(bitmask & (1 << i)) {
       if(sections[i])
         sections[i]->update(data);
       else
@@ -86,26 +86,27 @@ void ChunkColumn::update(std::uint16_t bitmask, std::istream& data) {
     }
 }
 
-void ChunkColumn::update(std::uint8_t sec_coord,
-    const std::vector<std::int64_t>& records) {
+void ChunkColumn::update(
+    std::uint8_t sec_coord, const std::vector<std::int64_t>& records) {
   for(auto rec : records) {
-    auto y {static_cast<std::uint8_t>(rec&0xF)};
-    auto z {static_cast<std::uint8_t>((rec>>=4)&0xF)};
-    auto x {static_cast<std::uint8_t>((rec>>=4)&0xF)};
-    auto block {static_cast<block_id>(rec>>4)};
+    auto y {static_cast<std::uint8_t>(rec & 0xF)};
+    auto z {static_cast<std::uint8_t>((rec >>= 4) & 0xF)};
+    auto x {static_cast<std::uint8_t>((rec >>= 4) & 0xF)};
+    auto block {static_cast<block_id>(rec >> 4)};
     sections[sec_coord]->update(x, y, z, block);
   }
 }
 
-void ChunkColumn::update(std::uint8_t x, std::uint8_t y, std::uint8_t z,
-   block_id block) {
+void ChunkColumn::update(
+    std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block) {
   auto& section {sections[y >> 4]};
   if(!section)
     section.emplace();
   section->update(x, y & 0xF, z, block);
 }
 
-block_id ChunkColumn::get(std::int32_t x, std::int32_t y, std::int32_t z) const {
+block_id ChunkColumn::get(
+    std::int32_t x, std::int32_t y, std::int32_t z) const {
   const auto& section {sections[y >> 4]};
   if(section)
     return section->get(x, y & 0xF, z);
@@ -128,11 +129,10 @@ IndexedBlockVec ChunkColumn::get(const IndexedCoordVec& positions) const {
   return ret;
 }
 
-
 void SMPMap::update(const mcd::ClientboundMapChunk& packet) {
   std::unique_lock lock {mutex};
-  boost::interprocess::ibufferstream ibuf(packet.chunkData.data(),
-      packet.chunkData.size());
+  boost::interprocess::ibufferstream ibuf(
+      packet.chunkData.data(), packet.chunkData.size());
   chunks[{packet.x, packet.z}].update(packet.bitMap, ibuf);
 }
 
@@ -173,8 +173,8 @@ BlockVec SMPMap::get(const std::vector<BlockCoord>& coords) const {
 
   for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
     auto& block_coord = coords[i];
-    map[{block_coord.x >> 4, block_coord.z >> 4}].push_back({
-        block_coord.x & 0xF, block_coord.y, block_coord.z & 0xF, i});
+    map[{block_coord.x >> 4, block_coord.z >> 4}].push_back(
+        {block_coord.x & 0xF, block_coord.y, block_coord.z & 0xF, i});
   }
 
   for(const auto& [chunk_coord, pos_vec] : map) {
@@ -195,8 +195,8 @@ BlockVec SMPMap::get(const CoordVec& coords) const {
 
   for(std::int32_t i = 0, end = coords.size(); i < end; i++) {
     const auto& block_coord {coords[i]};
-    map[{block_coord[0] >> 4, block_coord[2] >> 4}].push_back({
-        block_coord[0] & 0xF, block_coord[1], block_coord[2] & 0xF, i});
+    map[{block_coord[0] >> 4, block_coord[2] >> 4}].push_back(
+        {block_coord[0] & 0xF, block_coord[1], block_coord[2] & 0xF, i});
   }
 
   for(const auto& [chunk_coord, pos_vec] : map) {

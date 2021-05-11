@@ -23,8 +23,8 @@ PyObject* PluginLoader::py_require(const std::string& class_name) {
   Py_RETURN_NONE;
 }
 
-void PluginLoader::provide(const std::string& class_name,
-    PluginBase* class_ptr, bool own) {
+void PluginLoader::provide(
+    const std::string& class_name, PluginBase* class_ptr, bool own) {
   if(own)
     owned.emplace_back(class_ptr);
   class_map[class_name] = class_ptr;
@@ -37,4 +37,4 @@ void PluginLoader::provide(const std::string& class_name, PyObject* pyo) {
   pyo_map[class_name] = pyo;
 }
 
-} //namespace rkr
+} // namespace rkr

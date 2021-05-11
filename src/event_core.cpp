@@ -3,8 +3,8 @@
 
 namespace rkr {
 
-EventCore::EventCore(PluginLoader& ploader, bool ownership) :
-    PluginBase("rkr::EventCore *") {
+EventCore::EventCore(PluginLoader& ploader, bool ownership)
+    : PluginBase("rkr::EventCore *") {
   ploader.provide("Event", this, ownership);
 }
 
@@ -21,24 +21,23 @@ cb_id_type EventCore::register_callback(ev_id_type event_id, event_cb cb) {
   return event_channels[event_id].subscribe(cb);
 }
 
-cb_id_type EventCore::register_callback(const std::string& event_name,
-    event_cb cb) {
+cb_id_type EventCore::register_callback(
+    const std::string& event_name, event_cb cb) {
   return event_channels[register_event(event_name)].subscribe(cb);
 }
 
-cb_id_type EventCore::register_callback(ev_id_type event_id, PyObject *cb) {
+cb_id_type EventCore::register_callback(ev_id_type event_id, PyObject* cb) {
   return event_channels[event_id].subscribe(cb);
 }
 
-cb_id_type EventCore::register_callback(const std::string& event_name,
-    PyObject *cb) {
+cb_id_type EventCore::register_callback(
+    const std::string& event_name, PyObject* cb) {
   return event_channels[register_event(event_name)].subscribe(cb);
 }
 
-void EventCore::unregister_callback(ev_id_type event_id,
-    cb_id_type cb_id) {
+void EventCore::unregister_callback(ev_id_type event_id, cb_id_type cb_id) {
   if(std::any_of(event_stack.cbegin(), event_stack.cend(),
-      [event_id](auto i){return event_id == i;}))
+         [event_id](auto i) { return event_id == i; }))
     to_remove[event_id].push_back(cb_id);
   else
     event_channels[event_id].unsubscribe(cb_id);
@@ -61,12 +60,12 @@ void EventCore::emit(ev_id_type event_id, const void* data) {
 }
 
 // ToDo: Need to error check these SWIG_TypeQuery's probably
-void EventCore::emit(ev_id_type event_id, const void* data,
-    const std::string& type_query) {
+void EventCore::emit(
+    ev_id_type event_id, const void* data, const std::string& type_query) {
   event_stack.push_back(event_id);
   event_channels[event_id].emit(data);
-  PyObject *pyo {SWIG_NewPointerObj(const_cast<void*>(data),
-      SWIG_TypeQuery(type_query.c_str()), 0)};
+  PyObject* pyo {SWIG_NewPointerObj(
+      const_cast<void*>(data), SWIG_TypeQuery(type_query.c_str()), 0)};
   event_channels[event_id].emit(pyo);
   Py_DECREF(pyo);
   event_stack.pop_back();
@@ -76,18 +75,18 @@ void EventCore::emit(ev_id_type event_id, const void* data,
 
 void EventCore::emit(ev_id_type event_id, PyObject* data) {
   event_stack.push_back(event_id);
-  event_channels[event_id].emit(const_cast<const void*>(
-      static_cast<void*>(data)));
+  event_channels[event_id].emit(
+      const_cast<const void*>(static_cast<void*>(data)));
   event_channels[event_id].emit(data);
   event_stack.pop_back();
   if(to_remove.contains(event_id))
     clean_callbacks(event_id);
 }
 
-void EventCore::emit(ev_id_type event_id, PyObject* data,
-    const std::string& type_query) {
+void EventCore::emit(
+    ev_id_type event_id, PyObject* data, const std::string& type_query) {
   event_stack.push_back(event_id);
-  void *ptr;
+  void* ptr;
   SWIG_ConvertPtr(data, &ptr, SWIG_TypeQuery(type_query.c_str()), 0);
   event_channels[event_id].emit(const_cast<const void*>(ptr));
   event_channels[event_id].emit(data);

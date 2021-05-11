@@ -7,24 +7,22 @@
 // which is the rhythmic erection of essence.
 //   - Amy King, Wings of Desire
 
-
 #include <algorithm>
-#include <functional>
-#include <chrono>
-#include <botan/system_rng.h>
-#include <botan/pubkey.h>
-#include <botan/data_src.h>
-#include <botan/x509_key.h>
 #include <boost/log/trivial.hpp>
+#include <botan/data_src.h>
+#include <botan/pubkey.h>
+#include <botan/system_rng.h>
+#include <botan/x509_key.h>
+#include <chrono>
+#include <functional>
 
 #include "datautils.hpp"
 #include "io_core.hpp"
 
-
 namespace rkr {
 
-IOCore::IOCore(PluginLoader& ploader, net::io_context &ctx, bool ownership) :
-    PluginBase{"rkr::IOCore *"}, sock{ctx}, rslv{ctx}, tick_timer{ctx} {
+IOCore::IOCore(PluginLoader& ploader, net::io_context& ctx, bool ownership)
+    : PluginBase {"rkr::IOCore *"}, sock {ctx}, rslv {ctx}, tick_timer {ctx} {
 
   read_is.exceptions(read_is.eofbit | read_is.badbit | read_is.failbit);
   Botan::system_rng().randomize(shared_secret, std::size(shared_secret));
@@ -39,22 +37,22 @@ IOCore::IOCore(PluginLoader& ploader, net::io_context &ctx, bool ownership) :
   tick_event = ev->register_event("tick");
 
   ev->register_callback("ServerboundSetProtocol",
-      [&](ev_id_type, const void* data) {transition_state(data);});
+      [&](ev_id_type, const void* data) { transition_state(data); });
 
   ev->register_callback("auth_session_success",
-      [&](ev_id_type, const void* data) {encryption_begin_handler(data);});
+      [&](ev_id_type, const void* data) { encryption_begin_handler(data); });
 
   ev->register_callback("ServerboundEncryptionBegin",
-      [&](ev_id_type, const void* data) {enable_encryption(data);});
+      [&](ev_id_type, const void* data) { enable_encryption(data); });
 
   ev->register_callback("ClientboundCompress",
-      [&](ev_id_type, const void* data) {enable_compression(data);});
+      [&](ev_id_type, const void* data) { enable_compression(data); });
 
   ev->register_callback("ClientboundSuccess",
-      [&](ev_id_type, const void* data) {login_success(data);});
+      [&](ev_id_type, const void* data) { login_success(data); });
 
-  ev->register_callback("status_spawn",
-      [&](ev_id_type, const void*) {tick();});
+  ev->register_callback("status_spawn", //
+      [&](ev_id_type, const void*) { tick(); });
 
   for(int state_itr = 0; state_itr < mcd::STATE_MAX; state_itr++) {
     for(int dir_itr = 0; dir_itr < mcd::DIRECTION_MAX; dir_itr++) {
@@ -70,7 +68,7 @@ IOCore::IOCore(PluginLoader& ploader, net::io_context &ctx, bool ownership) :
 void IOCore::tick() {
   ev->emit(tick_event);
   tick_timer.expires_after(std::chrono::milliseconds(50));
-  tick_timer.async_wait([&](const sys::error_code&) {tick();});
+  tick_timer.async_wait([&](const sys::error_code&) { tick(); });
 }
 
 void IOCore::read_packet() {
@@ -81,19 +79,23 @@ void IOCore::read_packet() {
     // possible for an entire packet to be shorter than that. So we prepare
     // a 5 byte buffer then use read_some to read however many bytes come.
     in_buf = read_buf.prepare(5);
-    sock.async_read_some(in_buf, [&](const sys::error_code& ec,
-        std::size_t len) {header_handler(ec, len);});
+    sock.async_read_some(
+        in_buf, [&](const sys::error_code& ec, std::size_t len) {
+          header_handler(ec, len);
+        });
   }
 }
 
-void IOCore::write_packet(const boost::asio::streambuf& header,
-    const boost::asio::streambuf& body) {
+void IOCore::write_packet(
+    const boost::asio::streambuf& header, const boost::asio::streambuf& body) {
   out_bufs.push_back(header.data());
   out_bufs.push_back(body.data());
   if(!ongoing_write) {
     ongoing_write = true;
-    net::async_write(sock, out_bufs, [&](const sys::error_code& ec,
-        std::size_t len) {write_handler(ec, len);});
+    net::async_write(
+        sock, out_bufs, [&](const sys::error_code& ec, std::size_t len) {
+          write_handler(ec, len);
+        });
   }
 }
 
@@ -142,11 +144,13 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
   if(encrypted) {
     // Botan will only let me use a CipherMode in-place. So we do a bad thing
     // and discard const. Blame Botan.
-    encryptor->process(static_cast<std::uint8_t*>(const_cast<void*>(
-        header_buf.data().data())), header_buf.size());
+    encryptor->process(
+        static_cast<std::uint8_t*>(const_cast<void*>(header_buf.data().data())),
+        header_buf.size());
 
-    encryptor->process(static_cast<std::uint8_t*>(const_cast<void*>(
-        body_buf.data().data())), body_buf.size());
+    encryptor->process(
+        static_cast<std::uint8_t*>(const_cast<void*>(body_buf.data().data())),
+        body_buf.size());
   }
 
   ev->emit(packet_event_ids[state][mcd::SERVERBOUND][packet.packet_id],
@@ -157,12 +161,14 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
 
 void IOCore::connect(const std::string& host, const std::string& service) {
   auto endpoints = rslv.resolve(host, service);
-  net::async_connect(sock, endpoints, [&](const sys::error_code& ec,
-      const ip::tcp::endpoint& ep) {connect_handler(ec, ep);});
+  net::async_connect(sock, endpoints,
+      [&](const sys::error_code& ec, const ip::tcp::endpoint& ep) {
+        connect_handler(ec, ep);
+      });
 }
 
-void IOCore::connect_handler(const sys::error_code& ec,
-    const ip::tcp::endpoint& ep) {
+void IOCore::connect_handler(
+    const sys::error_code& ec, const ip::tcp::endpoint& ep) {
   if(ec.failed()) {
     BOOST_LOG_TRIVIAL(fatal) << ec.message();
     exit(-1);
@@ -171,8 +177,8 @@ void IOCore::connect_handler(const sys::error_code& ec,
   compressed = false;
   encrypted = false;
   ConnectData data {ep.address().to_string(), ep.port()};
-  ev->emit(connect_event, static_cast<const void*>(&data),
-      "rkr::ConnectData *");
+  ev->emit(
+      connect_event, static_cast<const void*>(&data), "rkr::ConnectData *");
   read_packet();
 }
 
@@ -189,23 +195,27 @@ void IOCore::write_handler(const sys::error_code& ec, std::size_t len) {
   }
 
   if(!out_bufs.empty())
-    net::async_write(sock, out_bufs, [&](const sys::error_code& ec,
-        std::size_t len) {write_handler(ec, len);});
+    net::async_write(
+        sock, out_bufs, [&](const sys::error_code& ec, std::size_t len) {
+          write_handler(ec, len);
+        });
   else
     ongoing_write = false;
 }
 
 void IOCore::read_header() {
-  auto varnum {mcd::verify_varint(static_cast<const char *>(
-      read_buf.data().data()), read_buf.size())};
+  auto varnum {mcd::verify_varint(
+      static_cast<const char*>(read_buf.data().data()), read_buf.size())};
 
   if(varnum == mcd::VARNUM_INVALID) {
     BOOST_LOG_TRIVIAL(fatal) << "Invalid header";
     exit(-1);
-  } else if (varnum == mcd::VARNUM_OVERRUN) {
+  } else if(varnum == mcd::VARNUM_OVERRUN) {
     in_buf = read_buf.prepare(5 - read_buf.size());
-    sock.async_read_some(in_buf, [&](const sys::error_code& ec,
-        std::size_t len) {header_handler(ec, len);});
+    sock.async_read_some(
+        in_buf, [&](const sys::error_code& ec, std::size_t len) {
+          header_handler(ec, len);
+        });
   } else {
     auto varint {mcd::dec_varint(read_is)};
     if(read_buf.size() >= static_cast<std::uint64_t>(varint)) {
@@ -213,8 +223,10 @@ void IOCore::read_header() {
       return;
     }
     in_buf = read_buf.prepare(varint - read_buf.size());
-    net::async_read(sock, in_buf, [&, varint](const sys::error_code& ec,
-        std::size_t len) {body_handler(ec, len, varint);});
+    net::async_read(
+        sock, in_buf, [&, varint](const sys::error_code& ec, std::size_t len) {
+          body_handler(ec, len, varint);
+        });
   }
 }
 
@@ -229,8 +241,8 @@ void IOCore::header_handler(const sys::error_code& ec, std::size_t len) {
   read_header();
 }
 
-void IOCore::body_handler(const sys::error_code& ec, std::size_t len,
-    int32_t body_len) {
+void IOCore::body_handler(
+    const sys::error_code& ec, std::size_t len, int32_t body_len) {
   if(ec.failed()) {
     BOOST_LOG_TRIVIAL(fatal) << ec.message();
     exit(-1);
@@ -253,10 +265,10 @@ void IOCore::read_body(size_t len) {
     if(uncompressed_len) {
       auto remaining_buf {len - (orig_size - read_buf.size())};
 
-      inflator.next_out = (unsigned char*) pak_buf.prepare(
-          uncompressed_len).data();
+      inflator.next_out =
+          (unsigned char*) pak_buf.prepare(uncompressed_len).data();
       inflator.avail_out = uncompressed_len;
-      inflator.next_in = (unsigned char *) read_buf.data().data();
+      inflator.next_in = (unsigned char*) read_buf.data().data();
       inflator.avail_in = remaining_buf;
 
       if(auto err {inflate(&inflator, Z_FINISH)}; err != Z_STREAM_END) {
@@ -282,17 +294,16 @@ void IOCore::read_body(size_t len) {
   }
   packet->decode(is_ref);
   // Needs to be exception based, otherwise reads can cause infinite loops
-  if(
-    (compressed && (pak_is.eof() || pak_is.fail() || pak_buf.size())) ||
-    (!compressed && (len != orig_size - read_buf.size()))
-  ) {
-    BOOST_LOG_TRIVIAL(fatal) << "Failed to decode packet, Suspect ID: "
-        << packet_id << " Suspect name: " << packet->packet_name;
+  if((compressed && (pak_is.eof() || pak_is.fail() || pak_buf.size())) ||
+      (!compressed && (len != orig_size - read_buf.size()))) {
+    BOOST_LOG_TRIVIAL(fatal)
+        << "Failed to decode packet, Suspect ID: " << packet_id
+        << " Suspect name: " << packet->packet_name;
     exit(-1);
   }
   ev->emit(packet_event_ids[state][mcd::CLIENTBOUND][packet->packet_id],
-      static_cast<const void*>(packet.get()), "mcd::" +
-      packet->packet_name + " *");
+      static_cast<const void*>(packet.get()),
+      "mcd::" + packet->packet_name + " *");
 
   read_packet();
 }
@@ -300,8 +311,9 @@ void IOCore::read_body(size_t len) {
 void IOCore::encryption_begin_handler(const void* data) {
   auto packet {static_cast<const mcd::ClientboundEncryptionBegin*>(data)};
 
-  Botan::DataSource_Memory mem {reinterpret_cast<const std::uint8_t*>(
-      packet->publicKey.data()), packet->publicKey.size()};
+  Botan::DataSource_Memory mem {
+      reinterpret_cast<const std::uint8_t*>(packet->publicKey.data()),
+      packet->publicKey.size()};
 
   auto& rng {Botan::system_rng()};
   std::unique_ptr<Botan::Public_Key> key {Botan::X509::load_key(mem)};
@@ -314,8 +326,9 @@ void IOCore::encryption_begin_handler(const void* data) {
   auto rslt {enc.encrypt(shared_secret, std::size(shared_secret), rng)};
   resp.sharedSecret = reinterpret_cast<std::vector<char>&&>(rslt);
 
-  rslt = enc.encrypt(reinterpret_cast<const std::uint8_t*>(
-      packet->verifyToken.data()), packet->verifyToken.size(), rng);
+  rslt = enc.encrypt(
+      reinterpret_cast<const std::uint8_t*>(packet->verifyToken.data()),
+      packet->verifyToken.size(), rng);
   resp.verifyToken = reinterpret_cast<std::vector<char>&&>(rslt);
 
   encode_packet(resp);

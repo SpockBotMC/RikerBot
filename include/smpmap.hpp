@@ -1,12 +1,12 @@
 #ifndef RKR_SMPMAP_HPP
 #define RKR_SMPMAP_HPP
 
-#include <cstdint>
-#include <unordered_map>
-#include <optional>
-#include <utility>
 #include <array>
+#include <cstdint>
+#include <optional>
 #include <shared_mutex>
+#include <unordered_map>
+#include <utility>
 
 #include <boost/functional/hash.hpp>
 #include <boost/interprocess/streams/bufferstream.hpp>
@@ -32,7 +32,7 @@ private:
   friend class ChunkColumn;
 
   // x, z, y ordered x + (z*16) + y*16*16
-  std::array<block_id, 16*16*16> blocks;
+  std::array<block_id, 16 * 16 * 16> blocks;
   void update(std::istream& data);
   void update(std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block);
   void update_palette(std::istream& data, std::uint8_t bits_per_block);
@@ -50,13 +50,13 @@ class ChunkColumn {
   std::array<std::optional<ChunkSection>, 16> sections;
 
   void update(std::uint16_t bitmask, std::istream& data);
-  void update(std::uint8_t sec_coord, const std::vector<std::int64_t>& records);
+  void update(
+      std::uint8_t sec_coord, const std::vector<std::int64_t>& records);
   void update(std::uint8_t x, std::uint8_t y, std::uint8_t z, block_id block);
 
   block_id get(std::int32_t x, std::int32_t y, std::int32_t z) const;
   IndexedBlockVec get(const IndexedCoordVec& coords) const;
 };
-
 
 typedef std::vector<std::array<std::int32_t, 3>> CoordVec;
 typedef std::vector<block_id> BlockVec;
@@ -75,10 +75,8 @@ public:
   BlockVec get(const CoordVec& coords) const;
 
 private:
-  std::unordered_map<ChunkCoord, ChunkColumn, boost::hash<ChunkCoord>>
-      chunks;
+  std::unordered_map<ChunkCoord, ChunkColumn, boost::hash<ChunkCoord>> chunks;
   mutable std::shared_mutex mutex;
-
 };
 
 } // namespace rkr

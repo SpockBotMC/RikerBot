@@ -1,12 +1,12 @@
-#include <boost/log/trivial.hpp>
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 
 #include "exec_core.hpp"
 
 namespace rkr {
 
-ExecCore::ExecCore(PluginLoader& ploader, bool ownership) :
-    PluginBase{"rkr::ExecCore*"} {
+ExecCore::ExecCore(PluginLoader& ploader, bool ownership)
+    : PluginBase {"rkr::ExecCore*"} {
 
   ploader.provide("Exec", this, ownership);
   ev = static_cast<EventCore*>(ploader.require("Event"));
@@ -17,7 +17,7 @@ ExecCore::ExecCore(PluginLoader& ploader, bool ownership) :
 void ExecCore::run() {
   boost::asio::signal_set signals(ctx, SIGINT, SIGTERM);
   signals.async_wait(
-      [&](const sys::error_code& ec, int sig) {signal_handler(ec, sig);});
+      [&](const sys::error_code& ec, int sig) { signal_handler(ec, sig); });
 
   ev->emit(init_event);
   ctx.run();

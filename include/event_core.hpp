@@ -4,11 +4,11 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include <iostream>
 #include <cstdint>
 #include <functional>
-#include <unordered_map>
+#include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "plugin_base.hpp"
@@ -26,19 +26,18 @@ public:
   ev_id_type register_event(const std::string& event_name);
 
   cb_id_type register_callback(ev_id_type event_id, event_cb cb);
-  cb_id_type register_callback(ev_id_type event_id, PyObject *cb);
+  cb_id_type register_callback(ev_id_type event_id, PyObject* cb);
   cb_id_type register_callback(const std::string& event_name, event_cb cb);
-  cb_id_type register_callback(const std::string& event_name, PyObject *cb);
+  cb_id_type register_callback(const std::string& event_name, PyObject* cb);
 
   void unregister_callback(ev_id_type event_id, cb_id_type cb_id);
 
   void emit(ev_id_type event_id);
   void emit(ev_id_type event_id, const void* data);
-  void emit(ev_id_type event_id, const void* data,
-      const std::string& type_query);
+  void emit(
+      ev_id_type event_id, const void* data, const std::string& type_query);
   void emit(ev_id_type event_id, PyObject* data);
-  void emit(ev_id_type event_id, PyObject* data,
-      const std::string& type_query);
+  void emit(ev_id_type event_id, PyObject* data, const std::string& type_query);
 
 private:
   class channel;
@@ -94,8 +93,8 @@ private:
     void emit(PyObject* data) {
       for(auto& el : py_cbs) {
         auto ev_id = PyLong_FromUnsignedLongLong(event_id);
-        PyObject* result = PyObject_CallFunctionObjArgs(el.second, ev_id,
-            data, NULL);
+        PyObject* result =
+            PyObject_CallFunctionObjArgs(el.second, ev_id, data, NULL);
         if(!result) {
           PyErr_Print();
           exit(-1);
@@ -110,8 +109,8 @@ private:
         el.second(event_id, nullptr);
       for(auto& el : py_cbs) {
         auto ev_id = PyLong_FromUnsignedLongLong(event_id);
-        PyObject* result = PyObject_CallFunctionObjArgs(el.second, ev_id,
-            Py_None, NULL);
+        PyObject* result =
+            PyObject_CallFunctionObjArgs(el.second, ev_id, Py_None, NULL);
         if(!result) {
           PyErr_Print();
           exit(-1);

@@ -1,23 +1,23 @@
 #ifndef NBT_HPP
 #define NBT_HPP
 
-#include <iostream>
-#include <string>
-#include <cstdint>
-#include <concepts>
-#include <vector>
-#include <optional>
-#include <string.h>
-#include <memory>
-#include <unordered_map>
+#include "byteswap.hpp"
 #include <algorithm>
 #include <cassert>
-#include "byteswap.hpp"
+#include <concepts>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <optional>
+#include <string.h>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace nbt {
 
 // Stupid hack because C++20 still doesn't have string literal template params
-template<int N> struct _FixedString {
+template <int N> struct _FixedString {
   constexpr _FixedString(char const (&s)[N]) {
     std::copy_n(s, N, this->el);
   }
@@ -25,18 +25,18 @@ template<int N> struct _FixedString {
   constexpr auto operator<=>(_FixedString const&) const = default;
   char el[N];
 };
-template<int N> _FixedString(char const(&)[N])->_FixedString<N>;
+template <int N> _FixedString(char const (&)[N]) -> _FixedString<N>;
 
 // My tiny, crap version of pprint
 // But we barely need pprint at all, so we use this instead
 class NbtPrinter {
-  std::ostream &stream_;
+  std::ostream& stream_;
   size_t indent_;
   std::string line_terminator_;
 
 public:
-  NbtPrinter(std::ostream &stream = std::cout) : stream_(stream),
-  indent_(2), line_terminator_("\n") {}
+  NbtPrinter(std::ostream& stream = std::cout)
+      : stream_(stream), indent_(2), line_terminator_("\n") {}
 
   NbtPrinter& line_terminator(const std::string& value) {
     line_terminator_ = value;
@@ -64,12 +64,12 @@ public:
 
 private:
   void print_internal(auto value, size_t indent = 0,
-  const std::string &line_terminator = "\n") {
+      const std::string& line_terminator = "\n") {
     stream_ << std::string(indent, ' ') << value << line_terminator;
   }
 
   void print_internal(float value, size_t indent = 0,
-  const std::string &line_terminator = "\n") {
+      const std::string& line_terminator = "\n") {
     stream_ << std::string(indent, ' ') << value << 'f' << line_terminator;
   }
 };
@@ -90,83 +90,79 @@ enum {
   TAG_LONG_ARRAY
 };
 
-
 class BaseTag {
 public:
   const std::uint8_t tag_id;
   const std::string type_name;
   std::optional<std::string> name;
 
-  BaseTag(const std::uint8_t id, const std::string& type_name) :
-      tag_id(id), type_name(type_name) {}
+  BaseTag(const std::uint8_t id, const std::string& type_name)
+      : tag_id(id), type_name(type_name) {}
   BaseTag(const std::string& name, const std::uint8_t id,
-      const std::string type_name) : tag_id(id), type_name(type_name),
-      name(name)  {}
+      const std::string type_name)
+      : tag_id(id), type_name(type_name), name(name) {}
   virtual ~BaseTag() = default;
 
-  virtual void encode(std::ostream &buf) const = 0;
-  virtual void decode(std::istream &buf) = 0;
-  virtual void print(std::ostream &os) const {
+  virtual void encode(std::ostream& buf) const = 0;
+  virtual void decode(std::istream& buf) = 0;
+  virtual void print(std::ostream& os) const {
     NbtPrinter pr(os);
     print(pr);
   };
-  virtual void print(NbtPrinter &pr, int pr_inline = 0) const = 0;
+  virtual void print(NbtPrinter& pr, int pr_inline = 0) const = 0;
 };
 
-inline std::ostream& operator<<(std::ostream &os, const BaseTag &b) {
+inline std::ostream& operator<<(std::ostream& os, const BaseTag& b) {
   b.print(os);
   return os;
 }
 
-
-template <typename T, int id>
-class Tag : public BaseTag {
+template <typename T, int id> class Tag : public BaseTag {
 public:
   T val;
   // Pass type_name string as param because trying to pass _FixedString between
   // templates is a no go. See: https://stackoverflow.com/q/62874007/1201456
   Tag(const std::string& type_name) : BaseTag(id, type_name) {}
-  Tag(const std::string name, const::std::string& type_name) :
-      BaseTag(name, id, type_name) {}
-  Tag(const T val, const std::string name, const::std::string& type_name) :
-      BaseTag(name, id, type_name), val(val) {}
+  Tag(const std::string name, const ::std::string& type_name)
+      : BaseTag(name, id, type_name) {}
+  Tag(const T val, const std::string name, const ::std::string& type_name)
+      : BaseTag(name, id, type_name), val(val) {}
 };
-
 
 template <std::integral Integral, std::uint8_t id, _FixedString type_name>
 class TagIntegral : public Tag<Integral, id> {
 public:
   TagIntegral() : TagIntegral::Tag(type_name.el) {}
-  TagIntegral(const std::string& name) : TagIntegral::Tag(name, type_name.el)
-      {}
-  TagIntegral(Integral val, std::string name) :
-      TagIntegral::Tag(val, name, type_name.el) {}
+  TagIntegral(const std::string& name)
+      : TagIntegral::Tag(name, type_name.el) {}
+  TagIntegral(Integral val, std::string name)
+      : TagIntegral::Tag(val, name, type_name.el) {}
   TagIntegral(Integral val) : TagIntegral::Tag(type_name.el) {
     this->val = val;
   }
-  TagIntegral(std::istream &buf) : TagIntegral::Tag(type_name.el) {
+  TagIntegral(std::istream& buf) : TagIntegral::Tag(type_name.el) {
     this->decode(buf);
   }
-  TagIntegral(std::istream &buf, const std::string& name) :
-      TagIntegral::Tag(name, type_name.el) {
+  TagIntegral(std::istream& buf, const std::string& name)
+      : TagIntegral::Tag(name, type_name.el) {
     this->decode(buf);
   }
 
-  void decode(std::istream &buf) {
-    buf.read(reinterpret_cast<char *>(&this->val), sizeof(this->val));
+  void decode(std::istream& buf) {
+    buf.read(reinterpret_cast<char*>(&this->val), sizeof(this->val));
     this->val = nbeswap(this->val);
   }
 
-  void encode(std::ostream &buf) const {
+  void encode(std::ostream& buf) const {
     Integral tmp = nbeswap(this->val);
-    buf.write(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+    buf.write(reinterpret_cast<char*>(&tmp), sizeof(tmp));
   }
 
-  void print(NbtPrinter &pr, int pr_inline = 0) const {
+  void print(NbtPrinter& pr, int pr_inline = 0) const {
     std::string str;
     if(this->name.has_value())
-      str = this->type_name + "('" + this->name.value() + "'): " +
-      std::to_string(this->val);
+      str = this->type_name + "('" + this->name.value() +
+            "'): " + std::to_string(this->val);
     else
       str = this->type_name + "(None): " + std::to_string(this->val);
     if(pr_inline)
@@ -181,49 +177,47 @@ typedef TagIntegral<std::int16_t, TAG_SHORT, "TagShort"> TagShort;
 typedef TagIntegral<std::int32_t, TAG_INT, "TagInt"> TagInt;
 typedef TagIntegral<std::int64_t, TAG_LONG, "TagLong"> TagLong;
 
-
 template <std::floating_point Decimal, std::uint8_t id, _FixedString type_name>
 class TagDecimal : public Tag<Decimal, id> {
 public:
-
   TagDecimal() : TagDecimal::Tag(type_name.el) {}
   TagDecimal(std::string name) : TagDecimal::Tag(name, type_name.el) {}
-  TagDecimal(Decimal val, std::string name) :
-      TagDecimal::Tag(val, name, type_name.el) {}
+  TagDecimal(Decimal val, std::string name)
+      : TagDecimal::Tag(val, name, type_name.el) {}
   TagDecimal(Decimal val) : TagDecimal::Tag(type_name.el) {
     this->val = val;
   }
-  TagDecimal(std::istream &buf) : TagDecimal::Tag(type_name.el) {
+  TagDecimal(std::istream& buf) : TagDecimal::Tag(type_name.el) {
     this->decode(buf);
   }
-  TagDecimal(std::istream &buf, std::string name) :
-  TagDecimal::Tag(name, type_name.el) {
+  TagDecimal(std::istream& buf, std::string name)
+      : TagDecimal::Tag(name, type_name.el) {
     this->decode(buf);
   }
 
-  void decode(std::istream &buf) {
-    std::conditional_t<
-      std::is_same_v<Decimal, float>, std::uint32_t , std::uint64_t
-    > tmp;
-    buf.read(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+  void decode(std::istream& buf) {
+    std::conditional_t<std::is_same_v<Decimal, float>, std::uint32_t,
+        std::uint64_t>
+        tmp;
+    buf.read(reinterpret_cast<char*>(&tmp), sizeof(tmp));
     tmp = nbeswap(tmp);
     memcpy(&this->val, &tmp, sizeof(tmp));
   }
 
-  void encode(std::ostream &buf) const {
-    std::conditional_t<
-      std::is_same_v<Decimal, float>, std::uint32_t , std::uint64_t
-    > tmp;
+  void encode(std::ostream& buf) const {
+    std::conditional_t<std::is_same_v<Decimal, float>, std::uint32_t,
+        std::uint64_t>
+        tmp;
     memcpy(&tmp, &this->val, sizeof(tmp));
     tmp = nbeswap(tmp);
-    buf.write(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+    buf.write(reinterpret_cast<char*>(&tmp), sizeof(tmp));
   }
 
-  void print(NbtPrinter &pr, int pr_inline = 0) const {
+  void print(NbtPrinter& pr, int pr_inline = 0) const {
     std::string str;
     if(this->name.has_value())
-      str = this->type_name + "('" + this->name.value() + "'): " +
-      std::to_string(this->val);
+      str = this->type_name + "('" + this->name.value() +
+            "'): " + std::to_string(this->val);
     else
       str = this->type_name + "(None): " + std::to_string(this->val);
     if(pr_inline)
@@ -236,57 +230,56 @@ public:
 typedef TagDecimal<float, TAG_FLOAT, "TagFloat"> TagFloat;
 typedef TagDecimal<double, TAG_DOUBLE, "TagDouble"> TagDouble;
 
-
 template <std::integral T, std::uint8_t id, _FixedString type_name>
 class TagArray : public Tag<std::vector<T>, id> {
 public:
-
   TagArray() : TagArray::Tag(type_name.el) {}
   TagArray(const std::string& name) : TagArray::Tag(name, type_name.el) {}
-  TagArray(std::vector<T> val, const std::string& name) :
-      TagArray::Tag(val, name, type_name.el) {}
+  TagArray(std::vector<T> val, const std::string& name)
+      : TagArray::Tag(val, name, type_name.el) {}
   TagArray(std::initializer_list<T> l) : TagArray::Tag(type_name.el) {
     this->val = l;
   }
   TagArray(std::vector<T> val) : TagArray::Tag(type_name.el) {
     this->val = val;
   }
-  TagArray(std::istream &buf) : TagArray::Tag(type_name.el) {
+  TagArray(std::istream& buf) : TagArray::Tag(type_name.el) {
     this->decode(buf);
   }
-  TagArray(std::istream &buf, const std::string& name) :
-  TagArray::Tag(name, type_name.el) {
+  TagArray(std::istream& buf, const std::string& name)
+      : TagArray::Tag(name, type_name.el) {
     this->decode(buf);
   }
 
-  void decode(std::istream &buf) {
+  void decode(std::istream& buf) {
     std::int32_t len;
-    buf.read(reinterpret_cast<char *>(&len), sizeof(len));
+    buf.read(reinterpret_cast<char*>(&len), sizeof(len));
     len = nbeswap(len);
-    if(len <= 0) return;
+    if(len <= 0)
+      return;
     this->val.resize(len);
-    for(auto &&el : this->val) {
-      buf.read(reinterpret_cast<char *>(&el), sizeof(el));
+    for(auto&& el : this->val) {
+      buf.read(reinterpret_cast<char*>(&el), sizeof(el));
       el = nbeswap(el);
     }
   }
 
-  void encode(std::ostream &buf) const {
+  void encode(std::ostream& buf) const {
     std::int32_t len = nbeswap(static_cast<std::int32_t>(this->val.size()));
-    buf.write(reinterpret_cast<char *>(&len), sizeof(len));
-    for(auto &&el : this->val) {
+    buf.write(reinterpret_cast<char*>(&len), sizeof(len));
+    for(auto&& el : this->val) {
       auto tmp = nbeswap(el);
-      buf.write(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+      buf.write(reinterpret_cast<char*>(&tmp), sizeof(tmp));
     }
   }
 
-  void print(NbtPrinter &pr, int pr_inline = 0) const {
+  void print(NbtPrinter& pr, int pr_inline = 0) const {
     std::string str;
     if(this->name.has_value())
       str = this->type_name + "('" + this->name.value() + "'): [";
     else
       str = this->type_name + "(None) : [";
-    for(auto &el : this->val)
+    for(auto& el : this->val)
       str += std::to_string(el) + ", ";
     if(this->val.size())
       str.resize(str.size() - 2);
@@ -297,7 +290,7 @@ public:
       pr.print(str);
   }
 
-  void print(std::ostream &os) const {
+  void print(std::ostream& os) const {
     NbtPrinter pr(os);
     print(pr);
   }
@@ -307,48 +300,48 @@ typedef TagArray<std::int8_t, TAG_BYTE_ARRAY, "TagByteAray"> TagByteArray;
 typedef TagArray<std::int32_t, TAG_INT_ARRAY, "TagIntArray"> TagIntArray;
 typedef TagArray<std::int64_t, TAG_LONG_ARRAY, "TagLongArray"> TagLongArray;
 
-inline void write_string(std::ostream &buf, const std::string &str) {
+inline void write_string(std::ostream& buf, const std::string& str) {
   std::uint16_t len = nbeswap(static_cast<std::uint16_t>(str.size()));
-  buf.write(reinterpret_cast<char *>(&len), sizeof(len));
+  buf.write(reinterpret_cast<char*>(&len), sizeof(len));
   buf.write(str.data(), str.size());
 }
 
-inline std::string read_string(std::istream &buf) {
-    std::uint16_t len;
-    buf.read(reinterpret_cast<char *>(&len), sizeof(len));
-    len = nbeswap(len);
-    auto tmp = std::make_unique<char[]>(len);
-    buf.read(tmp.get(), len);
-    return std::string(tmp.get(), len);
+inline std::string read_string(std::istream& buf) {
+  std::uint16_t len;
+  buf.read(reinterpret_cast<char*>(&len), sizeof(len));
+  len = nbeswap(len);
+  auto tmp = std::make_unique<char[]>(len);
+  buf.read(tmp.get(), len);
+  return std::string(tmp.get(), len);
 }
 
 class TagString : public Tag<std::string, TAG_STRING> {
 public:
   TagString() : Tag("TagString") {}
   TagString(const std::string& name) : Tag(name, "TagString") {}
-  TagString(const std::string& val, std::string name) :
-      Tag(val, name, "TagString") {}
-  TagString(std::istream &buf) : Tag("TagString") {
+  TagString(const std::string& val, std::string name)
+      : Tag(val, name, "TagString") {}
+  TagString(std::istream& buf) : Tag("TagString") {
     this->decode(buf);
   }
-  TagString(std::istream &buf, const std::string& name) :
-      Tag(name, "TagString") {
+  TagString(std::istream& buf, const std::string& name)
+      : Tag(name, "TagString") {
     this->decode(buf);
   }
 
-  void decode(std::istream &buf) {
+  void decode(std::istream& buf) {
     this->val = read_string(buf);
   }
 
-  void encode(std::ostream &buf) const {
+  void encode(std::ostream& buf) const {
     write_string(buf, this->val);
   }
 
-  void print(NbtPrinter &pr, int pr_inline = 0) const {
+  void print(NbtPrinter& pr, int pr_inline = 0) const {
     std::string str;
     if(this->name.has_value())
-      str = this->type_name + "('" + this->name.value() + "'): '" +
-      this->val + "'";
+      str = this->type_name + "('" + this->name.value() + "'): '" + this->val +
+            "'";
     else
       str = this->type_name + "(None): '" + this->val + "'";
     if(pr_inline)
@@ -363,57 +356,57 @@ public:
   uint8_t list_id;
   TagList() : Tag("TagList") {}
   TagList(std::string name) : Tag(name, "TagList") {}
-  TagList(std::istream &buf) : Tag("TagList") {
+  TagList(std::istream& buf) : Tag("TagList") {
     this->decode(buf);
   }
-  TagList(std::istream &buf, const std::string& name) : Tag(name, "TagList") {
+  TagList(std::istream& buf, const std::string& name) : Tag(name, "TagList") {
     this->decode(buf);
   }
-  TagList(const TagList &other) : Tag("TagList") {
+  TagList(const TagList& other) : Tag("TagList") {
     *this = other;
   }
   TagList& operator=(const TagList& other);
 
-  void decode(std::istream &buf);
-  void encode(std::ostream &buf) const;
+  void decode(std::istream& buf);
+  void encode(std::ostream& buf) const;
 
-  void print(NbtPrinter &pr, int pr_inline = 0) const {
-    auto str = std::string(this->type_name + "('" + this->name.value_or("") +
-        "'): " + std::to_string(this->val.size()) +
-        ((this->val.size() == 1) ? " entry " : " entries ") + "{");
+  void print(NbtPrinter& pr, int pr_inline = 0) const {
+    auto str =
+        std::string(this->type_name + "('" + this->name.value_or("") +
+                    "'): " + std::to_string(this->val.size()) +
+                    ((this->val.size() == 1) ? " entry " : " entries ") + "{");
     if(pr_inline) {
       pr.print_inline(str);
       pr.print("");
       pr.inc_indent(2);
-    }
-    else
+    } else
       pr.print(str);
-    for(auto &el : this->val) {
+    for(auto& el : this->val) {
       el->print(pr, 1);
       pr.print("");
     }
     if(pr_inline) {
       pr.dec_indent(2);
       pr.print_inline("}");
-    }
-    else
+    } else
       pr.print("}");
   }
 };
 
-class TagCompound : public Tag
-<std::unordered_map<std::string, std::unique_ptr<BaseTag>>, TAG_COMPOUND> {
+class TagCompound
+    : public Tag<std::unordered_map<std::string, std::unique_ptr<BaseTag>>,
+          TAG_COMPOUND> {
 public:
   TagCompound() : Tag("TagCompound") {}
   TagCompound(const std::string& name) : Tag(name, "TagCompound") {}
-  TagCompound(std::istream &buf) : Tag("TagCompound") {
+  TagCompound(std::istream& buf) : Tag("TagCompound") {
     this->decode(buf);
   }
-  TagCompound(std::istream &buf, const std::string& name) :
-      Tag(name, "TagCompound") {
+  TagCompound(std::istream& buf, const std::string& name)
+      : Tag(name, "TagCompound") {
     this->decode(buf);
   }
-  TagCompound(const TagCompound &other) : Tag("TagCompound") {
+  TagCompound(const TagCompound& other) : Tag("TagCompound") {
     *this = other;
   }
 
@@ -426,52 +419,64 @@ public:
       for(auto& el : other.val) {
         switch(el.second->tag_id) {
           case TAG_BYTE:
-            this->val.insert({el.first, std::make_unique<TagByte>(
-                *dynamic_cast<TagByte *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagByte>(
+                               *dynamic_cast<TagByte*>(el.second.get()))});
             break;
           case TAG_SHORT:
-            this->val.insert({el.first, std::make_unique<TagShort>(
-                *dynamic_cast<TagShort *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagShort>(
+                               *dynamic_cast<TagShort*>(el.second.get()))});
             break;
           case TAG_INT:
-            this->val.insert({el.first, std::make_unique<TagInt>(
-                *dynamic_cast<TagInt *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagInt>(
+                               *dynamic_cast<TagInt*>(el.second.get()))});
             break;
           case TAG_LONG:
-            this->val.insert({el.first, std::make_unique<TagLong>(
-                *dynamic_cast<TagLong *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagLong>(
+                               *dynamic_cast<TagLong*>(el.second.get()))});
             break;
           case TAG_FLOAT:
-            this->val.insert({el.first, std::make_unique<TagFloat>(
-                *dynamic_cast<TagFloat *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagFloat>(
+                               *dynamic_cast<TagFloat*>(el.second.get()))});
             break;
           case TAG_DOUBLE:
-            this->val.insert({el.first, std::make_unique<TagDouble>(
-                *dynamic_cast<TagDouble *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagDouble>(
+                               *dynamic_cast<TagDouble*>(el.second.get()))});
             break;
           case TAG_BYTE_ARRAY:
-            this->val.insert({el.first, std::make_unique<TagByteArray>(
-                *dynamic_cast<TagByteArray *>(el.second.get()))});
+            this->val.insert({el.first,
+                std::make_unique<TagByteArray>(
+                    *dynamic_cast<TagByteArray*>(el.second.get()))});
             break;
           case TAG_STRING:
-            this->val.insert({el.first, std::make_unique<TagString>(
-                *dynamic_cast<TagString *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagString>(
+                               *dynamic_cast<TagString*>(el.second.get()))});
             break;
           case TAG_LIST:
-            this->val.insert({el.first, std::make_unique<TagList>(
-                *dynamic_cast<TagList *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagList>(
+                               *dynamic_cast<TagList*>(el.second.get()))});
             break;
           case TAG_COMPOUND:
-            this->val.insert({el.first, std::make_unique<TagCompound>(
-                *dynamic_cast<TagCompound *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagCompound>(
+                               *dynamic_cast<TagCompound*>(el.second.get()))});
             break;
           case TAG_INT_ARRAY:
-            this->val.insert({el.first, std::make_unique<TagIntArray>(
-                *dynamic_cast<TagIntArray *>(el.second.get()))});
+            this->val.insert(
+                {el.first, std::make_unique<TagIntArray>(
+                               *dynamic_cast<TagIntArray*>(el.second.get()))});
             break;
           case TAG_LONG_ARRAY:
-            this->val.insert({el.first, std::make_unique<TagLongArray>(
-                *dynamic_cast<TagLongArray *>(el.second.get()))});
+            this->val.insert({el.first,
+                std::make_unique<TagLongArray>(
+                    *dynamic_cast<TagLongArray*>(el.second.get()))});
             break;
         }
       }
@@ -479,13 +484,13 @@ public:
     return *this;
   }
 
-  void decode(std::istream &buf) {
+  void decode(std::istream& buf) {
     this->val.clear();
     std::uint8_t tag_type;
-    buf.read(reinterpret_cast<char *>(&tag_type), sizeof(tag_type));
+    buf.read(reinterpret_cast<char*>(&tag_type), sizeof(tag_type));
     while(tag_type != TAG_END) {
       std::string name = read_string(buf);
-      switch (tag_type) {
+      switch(tag_type) {
         case TAG_BYTE:
           this->val.insert({name, std::make_unique<TagByte>(buf, name)});
           break;
@@ -523,18 +528,18 @@ public:
           this->val.insert({name, std::make_unique<TagLongArray>(buf, name)});
           break;
       }
-      buf.read(reinterpret_cast<char *>(&tag_type), sizeof(tag_type));
+      buf.read(reinterpret_cast<char*>(&tag_type), sizeof(tag_type));
     }
   }
 
-  void decode_full(std::istream &buf) {
+  void decode_full(std::istream& buf) {
     assert(buf.get() == TAG_COMPOUND);
     this->name = read_string(buf);
     decode(buf);
   }
 
-  void encode(std::ostream &buf) const {
-    for(auto &el : this->val) {
+  void encode(std::ostream& buf) const {
+    for(auto& el : this->val) {
       buf.put(el.second->tag_id);
       write_string(buf, el.second->name.value());
       el.second->encode(buf);
@@ -542,44 +547,43 @@ public:
     buf.put(TAG_END);
   }
 
-  void encode_full(std::ostream &buf) const {
+  void encode_full(std::ostream& buf) const {
     buf.put(this->tag_id);
     write_string(buf, this->name.value());
     encode(buf);
   }
 
-  void print(NbtPrinter &pr, int pr_inline = 0) const {
-    auto str = std::string(this->type_name + "('" + this->name.value_or("") +
-        "'): " + std::to_string(this->val.size()) +
-        ((this->val.size() == 1) ? " entry " : " entries ") + "{");
+  void print(NbtPrinter& pr, int pr_inline = 0) const {
+    std::string str {this->type_name + "('" + this->name.value_or("") +
+                     "'): " + std::to_string(this->val.size()) +
+                     ((this->val.size() == 1) ? " entry " : " entries ") +
+                     "{"};
     if(pr_inline) {
       pr.print_inline(str);
       pr.print("");
       pr.inc_indent(2);
-    }
-    else
+    } else
       pr.print(str);
-    for(auto &el : this->val) {
+    for(auto& el : this->val) {
       el.second->print(pr, 1);
       pr.print("");
     }
     if(pr_inline) {
       pr.dec_indent(2);
       pr.print_inline("}");
-    }
-    else
+    } else
       pr.print("}");
   }
 };
 
-inline TagCompound read_compound(std::istream &buf) {
+inline TagCompound read_compound(std::istream& buf) {
   std::uint8_t id;
-  buf.read(reinterpret_cast<char *>(&id), sizeof(id));
+  buf.read(reinterpret_cast<char*>(&id), sizeof(id));
   assert(id == TAG_COMPOUND);
   return TagCompound(buf, read_string(buf));
 }
 
-inline void write_compound(std::ostream &buf, TagCompound &tc) {
+inline void write_compound(std::ostream& buf, TagCompound& tc) {
   tc.encode_full(buf);
 }
 
@@ -591,79 +595,79 @@ inline TagList& TagList::operator=(const TagList& other) {
       this->name.reset();
     switch(other.list_id) {
       case TAG_BYTE:
-        for(auto &el : other.val)
-          this->val.push_back(std::make_unique<TagByte>(
-              *dynamic_cast<TagByte *>(el.get())));
+        for(auto& el : other.val)
+          this->val.push_back(
+              std::make_unique<TagByte>(*dynamic_cast<TagByte*>(el.get())));
         break;
       case TAG_SHORT:
-        for(auto &el : other.val)
-          this->val.push_back(std::make_unique<TagShort>(
-              *dynamic_cast<TagShort *>(el.get())));
+        for(auto& el : other.val)
+          this->val.push_back(
+              std::make_unique<TagShort>(*dynamic_cast<TagShort*>(el.get())));
         break;
       case TAG_INT:
-        for(auto &el : other.val)
-          this->val.push_back(std::make_unique<TagInt>(
-              *dynamic_cast<TagInt *>(el.get())));
+        for(auto& el : other.val)
+          this->val.push_back(
+              std::make_unique<TagInt>(*dynamic_cast<TagInt*>(el.get())));
         break;
       case TAG_LONG:
-        for(auto &el : other.val)
-          this->val.push_back(std::make_unique<TagLong>(
-              *dynamic_cast<TagLong *>(el.get())));
+        for(auto& el : other.val)
+          this->val.push_back(
+              std::make_unique<TagLong>(*dynamic_cast<TagLong*>(el.get())));
         break;
       case TAG_FLOAT:
-        for(auto &el : other.val)
-          this->val.push_back(std::make_unique<TagFloat>(
-              *dynamic_cast<TagFloat *>(el.get())));
+        for(auto& el : other.val)
+          this->val.push_back(
+              std::make_unique<TagFloat>(*dynamic_cast<TagFloat*>(el.get())));
         break;
       case TAG_DOUBLE:
-        for(auto &el : other.val)
+        for(auto& el : other.val)
           this->val.push_back(std::make_unique<TagDouble>(
-              *dynamic_cast<TagDouble *>(el.get())));
+              *dynamic_cast<TagDouble*>(el.get())));
         break;
       case TAG_BYTE_ARRAY:
-        for(auto &el : other.val)
+        for(auto& el : other.val)
           this->val.push_back(std::make_unique<TagByteArray>(
-              *dynamic_cast<TagByteArray *>(el.get())));
+              *dynamic_cast<TagByteArray*>(el.get())));
         break;
       case TAG_STRING:
-        for(auto &el : other.val)
+        for(auto& el : other.val)
           this->val.push_back(std::make_unique<TagString>(
-              *dynamic_cast<TagString *>(el.get())));
+              *dynamic_cast<TagString*>(el.get())));
         break;
       case TAG_LIST:
-        for(auto &el : other.val)
-          this->val.push_back(std::make_unique<TagList>(
-              *dynamic_cast<TagList *>(el.get())));
+        for(auto& el : other.val)
+          this->val.push_back(
+              std::make_unique<TagList>(*dynamic_cast<TagList*>(el.get())));
         break;
       case TAG_COMPOUND:
-        for(auto &el : other.val)
+        for(auto& el : other.val)
           this->val.push_back(std::make_unique<TagCompound>(
-              *dynamic_cast<TagCompound *>(el.get())));
+              *dynamic_cast<TagCompound*>(el.get())));
         break;
       case TAG_INT_ARRAY:
-        for(auto &el : other.val)
+        for(auto& el : other.val)
           this->val.push_back(std::make_unique<TagIntArray>(
-              *dynamic_cast<TagIntArray *>(el.get())));
+              *dynamic_cast<TagIntArray*>(el.get())));
         break;
       case TAG_LONG_ARRAY:
-        for(auto &el : other.val)
+        for(auto& el : other.val)
           this->val.push_back(std::make_unique<TagLongArray>(
-              *dynamic_cast<TagLongArray *>(el.get())));
+              *dynamic_cast<TagLongArray*>(el.get())));
         break;
     }
   }
   return *this;
 }
 
-inline void TagList::decode(std::istream &buf) {
-  buf.read(reinterpret_cast<char *>(&list_id), sizeof(list_id));
+inline void TagList::decode(std::istream& buf) {
+  buf.read(reinterpret_cast<char*>(&list_id), sizeof(list_id));
   std::int32_t len;
-  buf.read(reinterpret_cast<char *>(&len), sizeof(len));
+  buf.read(reinterpret_cast<char*>(&len), sizeof(len));
   len = nbeswap(len);
   if(len <= 0)
     return;
   this->val.reserve(len);
-  switch (list_id) {
+  switch(list_id) {
     case TAG_BYTE:
       for(int i = 0; i < len; i++)
         this->val.push_back(std::make_unique<TagByte>(buf));
@@ -715,13 +719,13 @@ inline void TagList::decode(std::istream &buf) {
   }
 }
 
-inline void TagList::encode(std::ostream &buf) const {
+inline void TagList::encode(std::ostream& buf) const {
   buf.put(list_id);
   std::int32_t len = nbeswap(static_cast<std::int32_t>(this->val.size()));
-  buf.write(reinterpret_cast<char *>(&len), sizeof(len));
-  for(auto &el : this->val)
+  buf.write(reinterpret_cast<char*>(&len), sizeof(len));
+  for(auto& el : this->val)
     el->encode(buf);
 }
 
-} // namespace NBT
+} // namespace nbt
 #endif // NBT_HPP

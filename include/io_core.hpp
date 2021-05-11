@@ -7,17 +7,16 @@
 // which is the rhythmic erection of essence.
 //   - Amy King, Wings of Desire
 
-
 #ifndef IO_CORE_HPP
 #define IO_CORE_HPP
 
-#include <string>
+#include <boost/asio.hpp>
+#include <boost/asio/ts/net.hpp>
+#include <botan/cipher_mode.h>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <zlib.h>
-#include <botan/cipher_mode.h>
-#include <boost/asio/ts/net.hpp>
-#include <boost/asio.hpp>
 
 // I have no idea why SWIG hates namespace aliasing, but what it can't see
 // won't hurt it.
@@ -29,11 +28,10 @@ namespace sys = boost::system;
 namespace ip = net::ip;
 #endif
 
-#include "plugin_loader.hpp"
-#include "plugin_base.hpp"
 #include "event_core.hpp"
 #include "minecraft_protocol.hpp"
-
+#include "plugin_base.hpp"
+#include "plugin_loader.hpp"
 
 namespace rkr {
 
@@ -46,7 +44,8 @@ class IOCore : public PluginBase {
 public:
   std::uint8_t shared_secret[16];
 
-  IOCore(rkr::PluginLoader& ploader, net::io_context& ctx, bool ownership = false);
+  IOCore(
+      rkr::PluginLoader& ploader, net::io_context& ctx, bool ownership = false);
   void encode_packet(const mcd::Packet& packet);
   void connect(const std::string& host, const std::string& service);
 
@@ -80,21 +79,21 @@ private:
   z_stream deflator {};
   std::size_t threshold;
 
-  std::array<std::array<std::vector<ev_id_type>,
-      mcd::DIRECTION_MAX>, mcd::STATE_MAX> packet_event_ids;
+  std::array<std::array<std::vector<ev_id_type>, mcd::DIRECTION_MAX>,
+      mcd::STATE_MAX>
+      packet_event_ids;
 
   void tick();
   void read_packet();
-  void write_packet(const boost::asio::streambuf& header,
-    const boost::asio::streambuf& body);
+  void write_packet(
+      const boost::asio::streambuf& header, const boost::asio::streambuf& body);
   void read_header();
   void read_body(std::size_t len);
-  void connect_handler(const sys::error_code& ec,
-      const ip::tcp::endpoint& ep);
+  void connect_handler(const sys::error_code& ec, const ip::tcp::endpoint& ep);
   void write_handler(const sys::error_code& ec, std::size_t len);
   void header_handler(const sys::error_code& ec, std::size_t len);
-  void body_handler(const sys::error_code& ec, std::size_t len,
-      int32_t body_len);
+  void body_handler(
+      const sys::error_code& ec, std::size_t len, int32_t body_len);
   void encryption_begin_handler(const void* data);
   void enable_encryption(const void* data);
   void enable_compression(const void* data);

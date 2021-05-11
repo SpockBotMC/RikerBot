@@ -11,14 +11,13 @@
 
 namespace rkr {
 
-enum severity_level
-{
-    level_trace,
-    level_debug,
-    level_info,
-    level_warning,
-    level_error,
-    level_fatal
+enum severity_level {
+  level_trace,
+  level_debug,
+  level_info,
+  level_warning,
+  level_error,
+  level_fatal
 };
 
 void set_log_level(const severity_level sev);

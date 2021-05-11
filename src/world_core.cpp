@@ -2,23 +2,23 @@
 
 namespace rkr {
 
-WorldCore::WorldCore(PluginLoader& ploader, bool ownership) :
-    PluginBase("rkr::WorldCore *") {
+WorldCore::WorldCore(PluginLoader& ploader, bool ownership)
+    : PluginBase("rkr::WorldCore*") {
 
   ploader.provide("World", this, ownership);
-  auto ev {static_cast<EventCore *>(ploader.require("Event"))};
+  auto ev {static_cast<EventCore*>(ploader.require("Event"))};
 
   ev->register_callback("ClientboundMapChunk",
-      [&](ev_id_type, const void* data) {chunk_update(data);});
+      [&](ev_id_type, const void* data) { chunk_update(data); });
 
   ev->register_callback("ClientboundUnloadChunk",
-      [&](ev_id_type, const void* data) {chunk_unload(data);});
+      [&](ev_id_type, const void* data) { chunk_unload(data); });
 
   ev->register_callback("ClientboundMultiBlockChange",
-      [&](ev_id_type, const void* data) {multiblock_change(data);});
+      [&](ev_id_type, const void* data) { multiblock_change(data); });
 
   ev->register_callback("ClientboundBlockChange",
-      [&](ev_id_type, const void* data) {block_change(data);});
+      [&](ev_id_type, const void* data) { block_change(data); });
 }
 
 block_id WorldCore::get(const BlockCoord& coord) const {
@@ -27,12 +27,12 @@ block_id WorldCore::get(const BlockCoord& coord) const {
 block_id WorldCore::get(std::int32_t x, std::int32_t y, std::int32_t z) const {
   return world.get(x, y, z);
 }
-std::vector<block_id> WorldCore::get(const std::vector<mcd::mc_position>&
-    coords) const {
+std::vector<block_id> WorldCore::get(
+    const std::vector<mcd::mc_position>& coords) const {
   return world.get(coords);
 }
-std::vector<block_id> WorldCore::get(const std::vector<std::array<
-    std::int32_t, 3>>& coords) const {
+std::vector<block_id> WorldCore::get(
+    const std::vector<std::array<std::int32_t, 3>>& coords) const {
   return world.get(coords);
 }
 
@@ -52,4 +52,4 @@ void WorldCore::block_change(const void* data) {
   world.update(*static_cast<const mcd::ClientboundBlockChange*>(data));
 }
 
-} //namespace rkr
+} // namespace rkr
