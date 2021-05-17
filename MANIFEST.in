@@ -1,0 +1,6 @@
+graft mcd2cpp
+graft src
+graft include
+graft swig
+graft cmake
+include generate.py CMakeLists.txt ReadMe.rst
