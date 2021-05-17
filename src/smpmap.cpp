@@ -1,5 +1,7 @@
-#include "smpmap.hpp"
+#include <mutex>
+
 #include "datautils.hpp"
+#include "smpmap.hpp"
 
 namespace rkr {
 
