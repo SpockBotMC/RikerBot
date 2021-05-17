@@ -3,7 +3,7 @@
 namespace rkr {
 
 WorldCore::WorldCore(PluginLoader& ploader, bool ownership)
-    : PluginBase("rkr::WorldCore*") {
+    : PluginBase("rkr::WorldCore *") {
 
   ploader.provide("World", this, ownership);
   auto ev {static_cast<EventCore*>(ploader.require("Event"))};

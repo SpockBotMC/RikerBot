@@ -6,7 +6,7 @@
 namespace rkr {
 
 ExecCore::ExecCore(PluginLoader& ploader, bool ownership)
-    : PluginBase {"rkr::ExecCore*"} {
+    : PluginBase {"rkr::ExecCore *"} {
 
   ploader.provide("Exec", this, ownership);
   ev = static_cast<EventCore*>(ploader.require("Event"));
