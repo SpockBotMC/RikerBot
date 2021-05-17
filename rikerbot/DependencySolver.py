@@ -1,8 +1,9 @@
 import copy
 
+
 # "plugins" is a list of (name, plugin) tuples, where "name" corresponds to an
 # entry in the settings dict
-def solve_dependencies(ploader, plugins, settings = None):
+def solve_dependencies(ploader, plugins, settings=None):
   announce = {}
   loaded = []
   failed_dependencies = []
@@ -18,7 +19,7 @@ def solve_dependencies(ploader, plugins, settings = None):
     name, plugin = plugin_tuple
     requirements = plugin.requires
     if isinstance(requirements, str):
-      requirements = (requirements,)
+      requirements = (requirements, )
     for requirement in requirements:
       if requirement in announce and requirement not in loaded:
         load_plugin(announce[requirement])

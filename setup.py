@@ -16,10 +16,12 @@ class RKRDistribution(Distribution):
     for module in self.py_modules or ():
       yield module
 
+
 class RKRExtension(Extension):
   def __init__(self, path):
     self.path = path
     super().__init__(pathlib.PurePath(path).name, [])
+
 
 def find_extensions(directory):
   extensions = []
@@ -30,22 +32,27 @@ def find_extensions(directory):
         extensions.append(RKRExtension(os.path.join(path, filename.stem)))
   return extensions
 
+
 class build_RKRExtensions(build_ext):
   def run(self):
     self.announce("Configuring CMake", level=3)
     source_dir = pathlib.PurePath(__file__).parent
     build_dir = source_dir / 'build' / build_type
 
-    self.spawn(['cmake', '--no-warn-unused-cli',
+    self.spawn([
+        'cmake', '--no-warn-unused-cli',
         '-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE',
-        f'-DCMAKE_BUILD_TYPE:STRING={build_type}',
-        f'-G{build_tool}',
-        f'-H{source_dir}', f'-B{build_dir}'])
+        f'-DCMAKE_BUILD_TYPE:STRING={build_type}', f'-G{build_tool}',
+        f'-H{source_dir}', f'-B{build_dir}'
+    ])
 
     self.announce("Building binaries", level=3)
 
-    self.spawn(['cmake', '--build', str(build_dir), '--config',
-        str(build_type), '--target', 'rikerbot_all', '-j', '14'])
+    self.spawn([
+        'cmake', '--build',
+        str(build_dir), '--config',
+        str(build_type), '--target', 'rikerbot_all', '-j', '14'
+    ])
 
     self.extensions = find_extensions('rikerbot')
 
@@ -53,28 +60,28 @@ class build_RKRExtensions(build_ext):
       source = f"{ext.path}{suffix}"
       ext_dir = pathlib.PurePath(self.get_ext_fullpath(ext.name)).parent
       os.makedirs(f"{ext_dir / pathlib.PurePath(ext.path).parent}",
-          exist_ok = True)
+                  exist_ok=True)
       shutil.copy(f"{source}", f"{ext_dir}/{source}")
 
+
 setup(
-  name = 'rikerbot',
-  description = 'RikerBot is a framework for creating Python Minecraft Bots '
-      'with C++ extensions',
-  license = 'zlib',
-  long_description = open('ReadMe.rst').read(),
-  version = '0.0.2',
-  url = 'https://github.com/SpockBotMC/RikerBot',
-  packages = find_packages(exclude = ['mcd2cpp']),
-  keywords = ['minecraft'],
-  author = "N. Vito Gamberini",
-  author_email = "vito@gamberini.email",
-  classifiers = [
-    'Development Status :: 2 - Pre-Alpha',
-    'License :: OSI Approved :: zlib/libpng License',
-    'Programming Language :: C++',
-    'Programming Language :: Python :: 3 :: Only'
-  ],
-  ext_modules = [RKRExtension("rikerbot")],
-  distclass = RKRDistribution,
-  cmdclass = {'build_ext': build_RKRExtensions}
-)
+    name='rikerbot',  # This comment prevents yapf formatting
+    description='RikerBot is a framework for creating Python Minecraft Bots '
+    'with C++ extensions',
+    license='zlib',
+    long_description=open('ReadMe.rst').read(),
+    version='0.0.2',
+    url='https://github.com/SpockBotMC/RikerBot',
+    packages=find_packages(exclude=["mcd2cpp"]),
+    keywords=['minecraft'],
+    author="N. Vito Gamberini",
+    author_email="vito@gamberini.email",
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+        'License :: OSI Approved :: zlib/libpng License',
+        'Programming Language :: C++',
+        'Programming Language :: Python :: 3 :: Only'
+    ],
+    ext_modules=[RKRExtension("rikerbot")],
+    distclass=RKRDistribution,
+    cmdclass={'build_ext': build_RKRExtensions})

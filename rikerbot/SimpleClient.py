@@ -3,9 +3,10 @@ import json
 
 import rikerbot
 
+
 class SimpleClient:
-  def __init__(self, extra_plugins = None, settings = None,
-      online_mode = True, *, username = '', tokens_path = None):
+  def __init__(self, extra_plugins=None, settings=None, online_mode=True, *,
+               username='', tokens_path=None):
     extra_plugins = [] if extra_plugins is None else extra_plugins
     settings = {} if settings is None else settings
     if tokens_path is None:
@@ -39,14 +40,14 @@ class SimpleClient:
   def __del__(self):
     rikerbot.delete_PluginLoader(self.ploader)
 
-  def start(self, host = "localhost", port = 25565):
+  def start(self, host="localhost", port=25565):
     self._start(host, port)
-
 
   def write_token(self, _, __):
     with open(self.tokens_path, 'w') as f:
-      f.write(json.dumps({
-        'client_token': self.auth.client_token,
-        'access_token': self.auth.access_token,
-        'selected_profile': self.auth.selected_profile
-      }))
+      f.write(
+          json.dumps({
+              'client_token': self.auth.client_token,
+              'access_token': self.auth.access_token,
+              'selected_profile': self.auth.selected_profile
+          }))

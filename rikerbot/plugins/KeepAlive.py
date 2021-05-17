@@ -6,15 +6,13 @@
 # and none of this, none of this matters.
 #   - Don Paterson, Rain
 
-
 from rikerbot.PluginBase import PluginBase
 from rikerbot import proto
 
+
 class KeepAlivePlugin(PluginBase):
   requires = ('IO')
-  events = {
-    'ClientboundKeepAlive': 'handle_keep_alive'
-  }
+  events = {'ClientboundKeepAlive': 'handle_keep_alive'}
 
   def __init__(self, ploader, settings):
     super().__init__(ploader, settings)

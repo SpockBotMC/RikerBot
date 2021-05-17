@@ -32,14 +32,14 @@ from .PluginBase import PluginBase, pl_announce
 from .PluginLoader import PluginLoader, make_PluginLoader, delete_PluginLoader
 
 default_plugins = [
-  ('start', StartPlugin),
-  ('io', IOPlugin),
-  ('event', EventPlugin),
-  ('auth', AuthPlugin),
-  ('keepalive', KeepAlivePlugin),
-  ('world', WorldPlugin),
-  ('status', StatusPlugin),
-  ('exec', ExecPlugin),
+    ('start', StartPlugin),
+    ('io', IOPlugin),
+    ('event', EventPlugin),
+    ('auth', AuthPlugin),
+    ('keepalive', KeepAlivePlugin),
+    ('world', WorldPlugin),
+    ('status', StatusPlugin),
+    ('exec', ExecPlugin),
 ]
 
 from .SimpleClient import SimpleClient

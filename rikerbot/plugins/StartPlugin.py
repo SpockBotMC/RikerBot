@@ -1,11 +1,12 @@
 from rikerbot.PluginBase import PluginBase, pl_announce
 from rikerbot import proto
 
+
 @pl_announce('Start')
 class StartPlugin(PluginBase):
   requires = ('Event', 'Exec', 'IO', 'Auth')
   events = {
-    'io_connect': 'handle_connect',
+      'io_connect': 'handle_connect',
   }
 
   def __init__(self, ploader, settings):

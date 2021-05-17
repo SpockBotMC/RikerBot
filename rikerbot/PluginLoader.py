@@ -28,6 +28,7 @@ plugin_loader_list = []
 
 from .CPluginLoader import PluginLoader as _PluginLoader
 
+
 class PluginLoader(_PluginLoader):
   def __init__(self):
     super().__init__()
@@ -37,9 +38,11 @@ class PluginLoader(_PluginLoader):
       self.pl_id = 0
     plugin_loader_list.append(self)
 
+
 def make_PluginLoader():
   pl = PluginLoader()
   return pl.pl_id, pl
+
 
 def delete_PluginLoader(pl):
   if isinstance(pl, int):

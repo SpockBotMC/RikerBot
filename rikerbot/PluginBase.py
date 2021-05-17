@@ -1,8 +1,10 @@
 # Copied wholesale from SpockBot, thanks Gjum
 import copy
 
+
 def get_settings(defaults, settings):
   return dict(copy.deepcopy(defaults), **settings)
+
 
 def pl_announce(*args):
   def inner(cl):
@@ -10,6 +12,7 @@ def pl_announce(*args):
     return cl
 
   return inner
+
 
 class PluginBase:
   """A base class for cleaner plugin code.
@@ -40,7 +43,8 @@ class PluginBase:
           ev.register_callback(event, getattr(self, self.events[event]))
         else:
           raise AttributeError(f"{self.__class__.__name__} object has no "
-              f"attribute '{self.events[event]}'")
+                               f"attribute '{self.events[event]}'")
+
 
 # Most C Plugins are used only for dependency resolution, they don't stick
 # around to own their core. Therefore we need to release ownership at
@@ -48,5 +52,6 @@ class PluginBase:
 # generically
 class CPluginBase(PluginBase):
   core = None
+
   def __init__(self, ploader, settings):
     self.core(ploader, True).thisown = 0

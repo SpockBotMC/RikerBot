@@ -3,12 +3,13 @@ from uuid import uuid4
 from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 
+
 class Yggdrasil(object):
   ygg_version = 1
   ygg_url = 'https://authserver.mojang.com'
 
   def __init__(self, username='', password='', client_token='',
-         access_token=''):
+               access_token=''):
     self.username = username
     self.password = password
     self.client_token = client_token
@@ -29,11 +30,10 @@ class Yggdrasil(object):
 
   def _ygg_req(self, endpoint, payload):
     try:
-      resp = urlopen(Request(
-        url=self.ygg_url + endpoint,
-        data=json.dumps(payload).encode('utf-8'),
-        headers={'Content-Type': 'application/json'})
-      )
+      resp = urlopen(
+          Request(url=self.ygg_url + endpoint,
+                  data=json.dumps(payload).encode('utf-8'),
+                  headers={'Content-Type': 'application/json'}))
     except HTTPError as e:
       resp = e
     data = resp.read().decode('utf-8')
@@ -49,13 +49,13 @@ class Yggdrasil(object):
     endpoint = '/authenticate'
 
     payload = {
-      'agent': {
-        'name': 'Minecraft',
-        'version': self.ygg_version,
-      },
-      'username': self.username,
-      'password': self.password,
-      'clientToken': self.client_token,
+        'agent': {
+            'name': 'Minecraft',
+            'version': self.ygg_version,
+        },
+        'username': self.username,
+        'password': self.password,
+        'clientToken': self.client_token,
     }
     rep = self._ygg_req(endpoint, payload)
     if not rep or 'error' in rep:
@@ -76,8 +76,8 @@ class Yggdrasil(object):
     endpoint = '/refresh'
 
     payload = {
-      'accessToken': self.access_token,
-      'clientToken': self.client_token,
+        'accessToken': self.access_token,
+        'clientToken': self.client_token,
     }
     rep = self._ygg_req(endpoint, payload)
     if not rep or 'error' in rep:
@@ -97,8 +97,8 @@ class Yggdrasil(object):
     endpoint = '/signout'
 
     payload = {
-      'username': self.username,
-      'password': self.password,
+        'username': self.username,
+        'password': self.password,
     }
     rep = self._ygg_req(endpoint, payload)
     if not rep or 'error' in rep:
@@ -118,8 +118,8 @@ class Yggdrasil(object):
     endpoint = '/invalidate'
 
     payload = {
-      'accessToken': self.access_token,
-      'clientToken': self.client_token,
+        'accessToken': self.access_token,
+        'clientToken': self.client_token,
     }
     self._ygg_req(endpoint, payload)
     self.client_token = ''
