@@ -21,16 +21,16 @@
 namespace mcd {
 
 // Big Endian 128-bit uint
-typedef struct {
+struct mc_uuid {
   std::uint64_t msb;
   std::uint64_t lsb;
-} mc_uuid;
+};
 
-typedef struct {
+struct mc_position {
   std::int32_t x;
   std::int32_t y;
   std::int32_t z;
-} mc_position;
+};
 
 void enc_byte(std::ostream& dest, const std::uint8_t src);
 std::uint8_t dec_byte(std::istream& src);
