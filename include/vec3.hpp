@@ -108,8 +108,13 @@ public:
     return _mm256_div_pd(ymm, m);
   }
 
+  Vec3& floor() {
+    ymm = _mm256_floor_pd(ymm);
+    return *this;
+  }
+
 private:
-  __m256d ymm;
+  __m256d ymm {_mm256_set1_pd(0.0)};
 };
 
 inline Vec3 operator+(const Vec3 a, const Vec3 b) {
