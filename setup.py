@@ -70,7 +70,7 @@ setup(
     'with C++ extensions',
     license='zlib',
     long_description=open('ReadMe.rst').read(),
-    version='0.0.2',
+    version='0.0.3',
     url='https://github.com/SpockBotMC/RikerBot',
     packages=find_packages(exclude=["mcd2cpp"]),
     keywords=['minecraft'],
