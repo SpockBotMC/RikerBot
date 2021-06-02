@@ -15,7 +15,7 @@ class StartPlugin(PluginBase):
 
   def start(self, host="localhost", port="25565"):
     port = str(port)
-    if (self.auth.login()):
+    if self.auth.login():
       self.io.connect(host, port)
       self.exec.run()
     else:

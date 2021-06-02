@@ -16,6 +16,9 @@ class Yggdrasil(object):
     self.access_token = access_token
     self.available_profiles = []
     self.selected_profile = {}
+    self._last_err = ""
+
+  last_err = property(lambda self: self._last_err)
 
   def login(self):
     if self.access_token and self.validate():
@@ -59,7 +62,9 @@ class Yggdrasil(object):
     }
     rep = self._ygg_req(endpoint, payload)
     if not rep or 'error' in rep:
+      self._last_err = rep['errorMessage'] if rep else 'Unknown failure'
       return False
+
     self.access_token = rep['accessToken']
     self.client_token = rep['clientToken']
     self.available_profiles = rep['availableProfiles']
@@ -81,6 +86,7 @@ class Yggdrasil(object):
     }
     rep = self._ygg_req(endpoint, payload)
     if not rep or 'error' in rep:
+      self._last_err = rep['errorMessage'] if rep else 'Unknown failure'
       return False
 
     self.access_token = rep['accessToken']
@@ -102,7 +108,9 @@ class Yggdrasil(object):
     }
     rep = self._ygg_req(endpoint, payload)
     if not rep or 'error' in rep:
+      self._last_err = rep['errorMessage'] if rep else 'Unknown failure'
       return False
+
     self.client_token = ''
     self.access_token = ''
     self.available_profiles = []
