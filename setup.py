@@ -65,7 +65,7 @@ class build_RKRExtensions(build_ext):
 
 
 setup(
-    name='rikerbot',  # This comment prevents yapf formatting
+    name='rikerbot',
     description='RikerBot is a framework for creating Python Minecraft Bots '
     'with C++ extensions',
     license='zlib',
@@ -84,4 +84,5 @@ setup(
     ],
     ext_modules=[RKRExtension("rikerbot")],
     distclass=RKRDistribution,
-    cmdclass={'build_ext': build_RKRExtensions})
+    cmdclass={'build_ext': build_RKRExtensions},
+)

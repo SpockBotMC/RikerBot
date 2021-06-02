@@ -10,6 +10,7 @@ Welcome to RikerBot's documentation!
    :maxdepth: 1
 
    installation
+   contributing
 
 
 

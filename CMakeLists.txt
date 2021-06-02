@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 project(RikerBot CXX)
 
-set(MC_VERSION "1.16.4" CACHE STRING "Minecraft version to target")
+set(MC_VERSION "1.16.5" CACHE STRING "Minecraft version to target")
 STRING(REGEX REPLACE [\.] _ MC_USCORE ${MC_VERSION})
 
 
