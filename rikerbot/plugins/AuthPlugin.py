@@ -54,6 +54,8 @@ class AuthCore:
       self.event.emit(self.login_success)
       return True
     self.event.emit(self.login_error)
+    logger.warning(f"Login failed!")
+    return False
 
 
 @pl_announce('Auth')
