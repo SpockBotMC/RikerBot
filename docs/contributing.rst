@@ -34,8 +34,8 @@ Submitting a PR
 ===============
 
 When opening a PR on the repo be sure to reference the associated issue number
-in at least one commit message the PR description itself. The PR must be able
-to merge cleanly against the master branch.
+in at least one commit message and the PR description itself. The PR must be
+able to merge cleanly against the master branch.
 
 .. _open an issue: https://github.com/SpockBotMC/RikerBot/issues
 .. _Github repo: https://github.com/SpockBotMC/RikerBot

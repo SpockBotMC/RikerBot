@@ -55,8 +55,9 @@ Get Involved
 ------------
 
 Please open issues or better yet, a pull request for things you would like to
-see in Riker. You can find `me <https://github.com/nickelpro>`_ on Freenode
-#mcdevs as ``nickelpro`` or reach out to me through email or social media.
+see in Riker. You can find `me <https://github.com/nickelpro>`_ in the
+`Libera.chat`_ #mcdevs channel as ``nickelpro`` or reach out to me through
+email or social media.
 
 Special Thanks
 --------------
@@ -89,3 +90,5 @@ enough to so significantly improve it meant and means a lot.
 .. _the documentation: https://rikerbot.readthedocs.io/en/latest/installation.html
 
 .. _the ExamplePlugin: https://github.com/SpockBotMC/RikerBot/blob/master/example/ExamplePlugin.py
+
+.. _Libera.chat: https://libera.chat
