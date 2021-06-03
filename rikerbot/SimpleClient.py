@@ -20,9 +20,9 @@ class SimpleClient:
     ev = self.ploader.require('Event')
     ev.register_callback('auth_login_success', self.write_token)
     self._start = self.ploader.require('Start')
-    self.auth = self.ploader.require('Auth')
 
-    self.online_mode = online_mode
+    self.auth = self.ploader.require('Auth')
+    self.auth.online_mode = online_mode
 
     if online_mode:
       if os.path.isfile(self.tokens_path):
