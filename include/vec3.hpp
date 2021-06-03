@@ -203,7 +203,15 @@ inline Vec3& operator/=(Vec3& a, const Vec3 b) {
   return a;
 }
 
-enum AXIS { X_AXIS = 0x1, Y_AXIS = 0x2, Z_AXIS = 0x4 };
+enum AXIS {
+  X_AXIS = 0x1,
+  Y_AXIS = 0x2,
+  XY_AXIS = 0x03,
+  Z_AXIS = 0x4,
+  XZ_AXIS = 0x5,
+  YZ_AXIS = 0x6,
+  XYZ_AXIS = 0x7
+};
 
 std::uint8_t operator==(const Vec3 a, const Vec3 b) {
   return _mm256_movemask_pd(_mm256_cmp_pd(a, b, _CMP_EQ_OQ));

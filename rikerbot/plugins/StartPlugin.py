@@ -1,5 +1,5 @@
 from rikerbot.PluginBase import PluginBase, pl_announce
-from rikerbot import proto
+from rikerbot import logger, proto
 
 
 @pl_announce('Start')
@@ -15,9 +15,11 @@ class StartPlugin(PluginBase):
 
   def start(self, host="localhost", port="25565"):
     port = str(port)
-    self.auth.login()
-    self.io.connect(host, port)
-    self.exec.run()
+    if self.auth.login():
+      self.io.connect(host, port)
+      self.exec.run()
+    else:
+      logger.fatal("Quitting due to login failure")
 
   def handle_connect(self, event_id, connect_data):
     packet = proto.ServerboundSetProtocol()

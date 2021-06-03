@@ -33,8 +33,8 @@ public:
   }
 
   bool intersects(const AABB& other) const {
-    int overlaps {(min < other.max) & (max > other.min)};
-    return overlaps == (X_AXIS | Y_AXIS | Z_AXIS);
+    auto overlaps {(min < other.max) & (max > other.min)};
+    return overlaps == XYZ_AXIS;
   }
 
 private:
