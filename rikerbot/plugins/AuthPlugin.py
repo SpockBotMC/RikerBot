@@ -8,7 +8,7 @@ from rikerbot.PluginBase import PluginBase, pl_announce
 
 
 class AuthCore:
-  def __init__(self, event, online_mode, auth_timeout):
+  def __init__(self, event, auth_timeout, online_mode):
     self.event = event
     self.online_mode = online_mode
     self.auth_timeout = auth_timeout
