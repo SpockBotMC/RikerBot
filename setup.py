@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages, Extension, Distribution
+from setuptools import setup, Extension, Distribution
 from setuptools.command.build_ext import build_ext
 import os
 import pathlib
@@ -23,16 +23,6 @@ class RKRExtension(Extension):
     super().__init__(pathlib.PurePath(path).name, [])
 
 
-def find_extensions(directory):
-  extensions = []
-  for path, _, filenames in os.walk(directory):
-    for filename in filenames:
-      filename = pathlib.PurePath(filename)
-      if pathlib.PurePath(filename).suffix == suffix:
-        extensions.append(RKRExtension(os.path.join(path, filename.stem)))
-  return extensions
-
-
 class build_RKRExtensions(build_ext):
   def run(self):
     self.announce("Configuring CMake", level=3)
@@ -54,14 +44,10 @@ class build_RKRExtensions(build_ext):
         str(build_type), '--target', 'rikerbot_all', '-j', '14'
     ])
 
-    self.extensions = find_extensions('rikerbot')
-
-    for ext in self.extensions:
-      source = f"{ext.path}{suffix}"
-      ext_dir = pathlib.PurePath(self.get_ext_fullpath(ext.name)).parent
-      os.makedirs(f"{ext_dir / pathlib.PurePath(ext.path).parent}",
-                  exist_ok=True)
-      shutil.copy(f"{source}", f"{ext_dir}/{source}")
+    mod = pathlib.PurePath(__file__).parent / 'rikerbot'
+    shutil.copytree(str(mod), os.path.join(self.build_lib, 'rikerbot'),
+                    ignore=shutil.ignore_patterns('*.pyc', '__pycache__'),
+                    dirs_exist_ok=True)
 
 
 setup(
@@ -72,7 +58,6 @@ setup(
     long_description=open('ReadMe.rst').read(),
     version='0.0.3',
     url='https://github.com/SpockBotMC/RikerBot',
-    packages=find_packages(exclude=["mcd2cpp"]),
     keywords=['minecraft'],
     author="N. Vito Gamberini",
     author_email="vito@gamberini.email",
