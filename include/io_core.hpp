@@ -18,6 +18,11 @@
 #include <string>
 #include <zlib.h>
 
+#include "event_core.hpp"
+#include "minecraft_protocol.hpp"
+#include "plugin_base.hpp"
+#include "plugin_loader.hpp"
+
 // I have no idea why SWIG hates namespace aliasing, but what it can't see
 // won't hurt it.
 #ifndef SWIG
@@ -27,11 +32,6 @@ namespace sys = boost::system;
 #endif
 namespace ip = net::ip;
 #endif
-
-#include "event_core.hpp"
-#include "minecraft_protocol.hpp"
-#include "plugin_base.hpp"
-#include "plugin_loader.hpp"
 
 namespace rkr {
 
@@ -44,8 +44,8 @@ class IOCore : public PluginBase {
 public:
   std::uint8_t shared_secret[16];
 
-  IOCore(
-      rkr::PluginLoader& ploader, net::io_context& ctx, bool ownership = false);
+  IOCore(rkr::PluginLoader& ploader, net::io_context& ctx,
+      bool ownership = false);
   void encode_packet(const mcd::Packet& packet);
   void connect(const std::string& host, const std::string& service);
 
@@ -85,8 +85,8 @@ private:
 
   void tick();
   void read_packet();
-  void write_packet(
-      const boost::asio::streambuf& header, const boost::asio::streambuf& body);
+  void write_packet(const boost::asio::streambuf& header,
+      const boost::asio::streambuf& body);
   void read_header();
   void read_body(std::size_t len);
   void connect_handler(const sys::error_code& ec, const ip::tcp::endpoint& ep);

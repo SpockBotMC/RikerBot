@@ -37,7 +37,8 @@ public:
   void emit(
       ev_id_type event_id, const void* data, const std::string& type_query);
   void emit(ev_id_type event_id, PyObject* data);
-  void emit(ev_id_type event_id, PyObject* data, const std::string& type_query);
+  void emit(
+      ev_id_type event_id, PyObject* data, const std::string& type_query);
 
 private:
   class channel;
@@ -77,6 +78,7 @@ private:
       }
       for(auto it = py_cbs.begin(); it != py_cbs.end(); it++) {
         if(it->first == cb_id) {
+          Py_DECREF(it->second);
           py_cbs.erase(it);
           free_ids.push_back(cb_id);
           return 0;

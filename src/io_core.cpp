@@ -144,8 +144,8 @@ void IOCore::encode_packet(const mcd::Packet& packet) {
   if(encrypted) {
     // Botan will only let me use a CipherMode in-place. So we do a bad thing
     // and discard const. Blame Botan.
-    encryptor->process(
-        static_cast<std::uint8_t*>(const_cast<void*>(header_buf.data().data())),
+    encryptor->process(static_cast<std::uint8_t*>(
+                           const_cast<void*>(header_buf.data().data())),
         header_buf.size());
 
     encryptor->process(
@@ -256,6 +256,7 @@ void IOCore::body_handler(
 void IOCore::read_body(size_t len) {
   static boost::asio::streambuf pak_buf;
   static std::istream pak_is {&pak_buf};
+  pak_is.exceptions(pak_is.failbit | pak_is.badbit | pak_is.eofbit);
 
   auto orig_size {read_buf.size()};
   int64_t uncompressed_len;
@@ -292,15 +293,23 @@ void IOCore::read_body(size_t len) {
     BOOST_LOG_TRIVIAL(fatal) << "Invalid packet id";
     exit(-1);
   }
-  packet->decode(is_ref);
-  // Needs to be exception based, otherwise reads can cause infinite loops
-  if((compressed && (pak_is.eof() || pak_is.fail() || pak_buf.size())) ||
-      (!compressed && (len != orig_size - read_buf.size()))) {
+
+  try {
+    packet->decode(is_ref);
+  } catch(std::exception&) {
     BOOST_LOG_TRIVIAL(fatal)
-        << "Failed to decode packet, Suspect ID: " << packet_id
-        << " Suspect name: " << packet->packet_name;
+        << "Failed to decode packet, suspect ID: " << packet_id
+        << " suspect name: " << packet->packet_name;
     exit(-1);
   }
+
+  if(pak_buf.size() || (!compressed && (len != orig_size - read_buf.size()))) {
+    BOOST_LOG_TRIVIAL(fatal)
+        << "Packet stream desync, suspect id: " << packet_id
+        << " suspect name: " << packet->packet_name;
+    exit(-1);
+  }
+
   ev->emit(packet_event_ids[state][mcd::CLIENTBOUND][packet->packet_id],
       static_cast<const void*>(packet.get()),
       "mcd::" + packet->packet_name + " *");
