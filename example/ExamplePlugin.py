@@ -3,9 +3,11 @@
 
 from rikerbot import PluginBase, pl_announce, proto, logger
 
+
 class ExampleCore:
-  def __init__(self, greeting_string = "Hello, I am RikerBot"):
-      self.greeting_string = greeting_string
+  def __init__(self, greeting_string="Hello, I am RikerBot"):
+    self.greeting_string = greeting_string
+
 
 # The pl_announce decorator tells the plugin loader about any interfaces
 # provided by the plugin, and is required for dependency resolution. These
@@ -22,23 +24,23 @@ class ExamplePlugin(PluginBase):
   # send out our chat message.
   # The `requires` strings are case sensitive, and will be assigned to your
   # plugin object as lower-case attributes upon initializing the PluginBase.
-  requires = ("IO",)
+  requires = ("IO", )
 
   # The `defaults` dict is a list of default settings that you want for your
   # plugin. Any settings not provided by the user will be initialized with
   # these settings upon initializing the PluginBase.
   defaults = {
-    'greeting_string': "Hello, I am Rikerbot",
+      'greeting_string': "Hello, I am Rikerbot",
   }
 
   # The `events` dict maps events to callbacks from your plugin object. The
   # event system will call your method when another plugin signals the event
   # has occured.
   events = {
-    # All protocol events use the direction of the packet, either "Clientbound"
-    # or "Serverbound", followed by the name of the packet given by Minecraft
-    # Data.
-    'ClientboundChat': 'handle_incoming_chat'
+      # All protocol events use the direction of the packet, either
+      # "Clientbound" or "Serverbound", followed by the name of the packet
+      # given by Minecraft Data.
+      'ClientboundChat': 'handle_incoming_chat'
   }
 
   # Init is always handed two parameters, the plugin loader itself, and a
@@ -46,7 +48,6 @@ class ExamplePlugin(PluginBase):
   # immediately initialize it to setup your requires/defaults/events fields
   def __init__(self, ploader, settings):
     super().__init__(ploader, settings)
-
 
     # The greeting_string setting will be "Hello, I am RikerBot" unless a user
     # has provided a custom setting.
@@ -60,7 +61,6 @@ class ExamplePlugin(PluginBase):
     # In this example, other plugins could use the ExampleCore in order to
     # change the greeting string.
     ploader.provide("Example", self.core)
-
 
     # You do not need to use the `requires` iterable to load the Event Core,
     # it is loaded implicity by the plugin loader and is always available.
@@ -77,7 +77,6 @@ class ExamplePlugin(PluginBase):
     # it. In a normal plugin you would just include it in the `requires` list
     # if this were the case.
     self.event = event
-
 
   # Callbacks to object methods are handed two pieces of data, the event id
   # that is responsible for the call (which is the handle that was created by
@@ -115,17 +114,18 @@ class ExamplePlugin(PluginBase):
     # advanced usage that you don't usually need to worry about though.
     self.event.emit(self.greeting_sent)
 
-if __name__ == "main":
+
+if __name__ == "__main__":
   from rikerbot import SimpleClient
   # Settings dicts map a name to a dictionary of settings
   settings = {
-    'example': {
-    'greeting_string': input("Please provide a greeting: ")
-   }
+      'example': {
+          'greeting_string': input("Please provide a greeting: ")
+      }
   }
   # Plugin lists are lists of tuples that provide a name (to be looked up in
   # the settings dict), and a plugin associated with that name. The plugin will
   # be provided with the settings associated with its name.
   plugins = [('example', ExamplePlugin)]
-  client = SimpleClient(plugins, settings, online_mode = False)
-  client.start(host = "localhost", port = 25565)
+  client = SimpleClient(plugins, settings, online_mode=False)
+  client.start(host="localhost", port=25565)
