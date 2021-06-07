@@ -8,11 +8,15 @@
 indent = "  "
 
 mcd_typemap = {}
+
+
 def mc_data_name(typename):
   def inner(cls):
-      mcd_typemap[typename] = cls
-      return cls
+    mcd_typemap[typename] = cls
+    return cls
+
   return inner
+
 
 # MCD/Protodef has two elements of note, "fields" and "types"
 # "Fields" are JSON objects with the following members:
@@ -32,12 +36,14 @@ def mc_data_name(typename):
 #
 # The following extract functions normalize this format
 
+
 # Param: MCD "type"
 # Returns: Field type, Field data
 def extract_type(type_field):
-  if(isinstance(type_field, str)):
+  if (isinstance(type_field, str)):
     return type_field, []
   return type_field[0], type_field[1]
+
 
 # Param: MCD "field"
 # Returns: Field name, Field type, Field data
@@ -46,11 +52,12 @@ def extract_field(packet_field):
   field_type, field_data = extract_type(packet_field['type'])
   return name, field_type, field_data
 
+
 class generic_type:
   typename = ''
   postfix = ''
 
-  def __init__(self, name, parent, type_data = None, use_compare = False):
+  def __init__(self, name, parent, type_data=None, use_compare=False):
     self.name = name
     self.old_name = None
     self.parent = parent
@@ -68,23 +75,23 @@ class generic_type:
     self.use_compare = use_compare
 
   def declaration(self):
-    return (f"{self.typename} {self.name};",)
+    return (f"{self.typename} {self.name};", )
 
   def initialization(self, val):
-    return (f"{self.typename} {self.name} = {val};",)
+    return (f"{self.typename} {self.name} = {val};", )
 
   def encoder(self):
-    return (f"enc_{self.postfix}(dest, {self.name});",)
+    return (f"enc_{self.postfix}(dest, {self.name});", )
 
   def decoder(self):
     if self.name:
-      return (f"{self.name} = dec_{self.postfix}(src);",)
+      return (f"{self.name} = dec_{self.postfix}(src);", )
     # Special case for when we need to decode a variable as a parameter
     else:
       return f"dec_{self.postfix}(src)"
 
   def dec_initialized(self):
-    return (f"{self.typename} {self.name} = dec_{self.postfix}(src);",)
+    return (f"{self.typename} {self.name} = dec_{self.postfix}(src);", )
 
   # This comes up enough to write some dedicated functions for it
   # Conglomerate types take one of two approaches to fundamental types:
@@ -113,27 +120,32 @@ class generic_type:
   def __str__(self):
     return f"{self.typename} {self.name}"
 
+
 # A "simple" type is one that doesn't need to typedef an additional type in
 # order to declare its variable. The only "complex" types are bitfields and
 # containers, everything else is considered "simple"
 class simple_type(generic_type):
   pass
 
+
 class numeric_type(simple_type):
-    size = 0
+  size = 0
+
 
 # These exist because MCD switches use them. I hate MCD switches
 @mc_data_name('void')
 class void_type(numeric_type):
   typename = 'void'
+
   def declaration(self):
-    return (f"// '{self.name}' is a void type",)
+    return (f"// '{self.name}' is a void type", )
 
   def encoder(self):
-    return (f"// '{self.name}' is a void type",)
+    return (f"// '{self.name}' is a void type", )
 
   def decoder(self):
-    return (f"// '{self.name}' is a void type",)
+    return (f"// '{self.name}' is a void type", )
+
 
 @mc_data_name('u8')
 class num_u8(numeric_type):
@@ -141,13 +153,16 @@ class num_u8(numeric_type):
   typename = 'std::uint8_t'
   postfix = 'byte'
 
+
 @mc_data_name('i8')
 class num_i8(num_u8):
   typename = 'std::int8_t'
 
+
 @mc_data_name('bool')
 class num_bool(num_u8):
   pass
+
 
 @mc_data_name('u16')
 class num_u16(numeric_type):
@@ -155,9 +170,11 @@ class num_u16(numeric_type):
   typename = 'std::uint16_t'
   postfix = 'be16'
 
+
 @mc_data_name('i16')
 class num_i16(num_u16):
   typename = 'std::int16_t'
+
 
 @mc_data_name('u32')
 class num_u32(numeric_type):
@@ -165,9 +182,11 @@ class num_u32(numeric_type):
   typename = 'std::uint32_t'
   postfix = 'be32'
 
+
 @mc_data_name('i32')
 class num_i32(num_u32):
   typename = 'std::int32_t'
+
 
 @mc_data_name('u64')
 class num_u64(numeric_type):
@@ -175,19 +194,23 @@ class num_u64(numeric_type):
   typename = 'std::uint64_t'
   postfix = 'be64'
 
+
 @mc_data_name('i64')
 class num_i64(num_u64):
   typename = 'std::int64_t'
+
 
 @mc_data_name('f32')
 class num_float(num_u32):
   typename = 'float'
   postfix = 'bef32'
 
+
 @mc_data_name('f64')
 class num_double(num_u64):
   typename = 'double'
   postfix = 'bef64'
+
 
 # Positions and UUIDs are broadly similar to numeric types
 # A position is technically a bitfield but we hide that behind a utility func
@@ -196,11 +219,13 @@ class num_position(num_u64):
   typename = 'mc_position'
   postfix = 'position'
 
+
 @mc_data_name('UUID')
 class num_uuid(numeric_type):
   size = 16
   typename = 'mc_uuid'
   postfix = 'uuid'
+
 
 @mc_data_name('varint')
 class mc_varint(numeric_type):
@@ -210,34 +235,38 @@ class mc_varint(numeric_type):
   typename = 'std::int64_t'
   postfix = 'varint'
 
+
 @mc_data_name('varlong')
 class mc_varlong(numeric_type):
   typename = 'std::int64_t'
   # Decoding varlongs is the same as decoding varints
   postfix = 'varint'
 
+
 @mc_data_name('string')
 class mc_string(simple_type):
   typename = 'std::string'
   postfix = 'string'
+
 
 @mc_data_name('buffer')
 class mc_buffer(simple_type):
   typename = 'std::vector<char>'
   postfix = 'buffer'
 
-  def __init__(self, name, parent, type_data, use_compare = False):
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
     self.count = mcd_typemap[type_data['countType']].postfix
 
   def encoder(self):
     return (
-      f"enc_{self.count}(dest, {self.name}.size());",
-      f"enc_buffer(dest, {self.name});",
+        f"enc_{self.count}(dest, {self.name}.size());",
+        f"enc_buffer(dest, {self.name});",
     )
 
   def decoder(self):
-    return (f"{self.name} = dec_buffer(src, dec_{self.count}(src));",)
+    return (f"{self.name} = dec_buffer(src, dec_{self.count}(src));", )
+
 
 @mc_data_name('restBuffer')
 class mc_restbuffer(simple_type):
@@ -245,60 +274,46 @@ class mc_restbuffer(simple_type):
   postfix = 'buffer'
 
   def encoder(self):
-    return (f"dest.write({self.name}.data(), {self.name}.size());",)
+    return (f"dest.write({self.name}.data(), {self.name}.size());", )
 
   def decoder(self):
     return (
-      f"{self.name} = std::vector<char>(std::istreambuf_iterator<char>(src),",
-      indent*2 + f"std::istreambuf_iterator<char>());"
-    )
+        f"{self.name} = std::vector<char>(std::istreambuf_iterator<char>(src),",
+        indent * 2 + f"std::istreambuf_iterator<char>());")
 
-@mc_data_name('nbt')
-class mc_nbt(simple_type):
-  typename = 'nbt::TagCompound'
-
-  def encoder(self):
-    return (f"{self.name}.encode_full(dest);",)
-
-  def decoder(self):
-    return (f"{self.name}.decode_full(src);",)
-
-@mc_data_name('optionalNbt')
-class mc_optnbt(simple_type):
-  typename = 'std::optional<nbt::TagCompound>'
-
-  def encoder(self):
-    return (
-      f"if({self.name})",
-      f"{indent}{self.name}->encode_full(dest);",
-      f"else",
-      f"{indent}enc_byte(dest, nbt::TAG_END);"
-    )
-
-  def decoder(self):
-    return (
-      "if(dec_byte(src) == nbt::TAG_COMPOUND)",
-      f"{indent}{self.name}.emplace(src, nbt::read_string(src));",
-    )
 
 class self_serializing_type(simple_type):
   def encoder(self):
-    return (f"{self.name}.encode(dest);",)
+    return (f"{self.name}.encode(dest);", )
 
   def decoder(self):
-    return (f"{self.name}.decode(src);",)
+    return (f"{self.name}.decode(src);", )
+
+
+@mc_data_name('nbt')
+class mc_nbt(self_serializing_type):
+  typename = 'nbt::NBT'
+
+
+@mc_data_name('optionalNbt')
+class mc_optnbt(self_serializing_type):
+  typename = 'nbt::NBT'
+
 
 @mc_data_name('slot')
 class mc_slot(self_serializing_type):
   typename = 'MCSlot'
 
+
 @mc_data_name('minecraft_smelting_format')
 class mc_smelting(self_serializing_type):
   typename = 'MCSmelting'
 
+
 @mc_data_name('entityMetadata')
 class mc_metadata(self_serializing_type):
   typename = 'MCEntityMetadata'
+
 
 # This is not how topBitSetTerminatedArray works, but the real solution is hard
 # and this solution is easy. As long as this type is only found in the Entity
@@ -307,20 +322,24 @@ class mc_metadata(self_serializing_type):
 class mc_entity_equipment(self_serializing_type):
   typename = 'MCEntityEquipment'
 
+
 @mc_data_name('particleData')
 class mc_particle(self_serializing_type):
   typename = 'MCParticle'
-  def __init__(self, name, parent, type_data, use_compare = False):
+
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
     self.id_field = type_data['compareTo']
 
   def decoder(self):
     return (f"{self.name}.decode(src, "
-        f"static_cast<particle_type>({self.id_field}));",)
+            f"static_cast<particle_type>({self.id_field}));", )
+
 
 class vector_type(simple_type):
   count = mc_varint
-  def __init__(self, name, parent, type_data, use_compare = False):
+
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
     self.depth = 0
     p = parent
@@ -329,30 +348,29 @@ class vector_type(simple_type):
       p = p.parent
 
   def encoder(self):
-    return (
-      f"enc_{self.count.postfix}(dest, {self.name}.size());",
-      f"for(auto &el{self.depth} : {self.name})",
-      f"{indent}el{self.depth}.encode(dest);"
-    )
+    return (f"enc_{self.count.postfix}(dest, {self.name}.size());",
+            f"for(auto &el{self.depth} : {self.name})",
+            f"{indent}el{self.depth}.encode(dest);")
 
   def decoder(self):
-    return (
-      f"{self.name}.resize(dec_{self.count.postfix}(src));",
-      f"for(auto &el{self.depth} : {self.name})",
-      f"{indent}el{self.depth}.decode(src);"
-    )
+    return (f"{self.name}.resize(dec_{self.count.postfix}(src));",
+            f"for(auto &el{self.depth} : {self.name})",
+            f"{indent}el{self.depth}.decode(src);")
+
 
 @mc_data_name('ingredient')
 class mc_ingredient(vector_type):
   typename = 'std::vector<MCSlot>'
 
+
 @mc_data_name('tags')
 class mc_tags(vector_type):
   typename = 'std::vector<MCTag>'
 
+
 @mc_data_name('option')
 class mc_option(simple_type):
-  def __init__(self, name, parent, type_data, use_compare = False):
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
     f_type, f_data = extract_type(type_data)
     self.field = mcd_typemap[f_type](f"{name}", self, f_data)
@@ -366,27 +384,22 @@ class mc_option(simple_type):
     if isinstance(self.field, simple_type):
       return super().declaration()
     self.field.name = f"{self.name}_type"
-    return [
-      *self.field.typedef(),
-      f"{self.typename} {self.name};"
-    ]
+    return [*self.field.typedef(), f"{self.typename} {self.name};"]
 
   def encoder(self):
     self.field.name = f"{self.name}.value()"
     return [
-      f"enc_byte(dest, {self.name}.has_value());",
-      f"if({self.name}) {{",
-      *(indent + line for line in self.field.encoder()),
-      "}"
+        f"enc_byte(dest, {self.name}.has_value());", f"if({self.name}) {{",
+        *(indent + line for line in self.field.encoder()), "}"
     ]
 
   def decoder(self):
     ret = [f"if(dec_byte(src)) {{"]
-    if isinstance(self.field, numeric_type) or type(self.field) in (mc_string,
-        mc_buffer, mc_restbuffer):
+    if isinstance(self.field, numeric_type) or type(
+        self.field) in (mc_string, mc_buffer, mc_restbuffer):
       self.field.name = self.name
-    elif isinstance(self.field, vector_type) or isinstance(self.field,
-        complex_type):
+    elif isinstance(self.field, vector_type) or isinstance(
+        self.field, complex_type):
       ret.append(f"{indent}{self.name}.emplace();")
       self.field.name = f"{self.name}.value()"
     else:
@@ -395,13 +408,13 @@ class mc_option(simple_type):
     ret.append('}')
     return ret
 
+
 class complex_type(generic_type):
   def declaration(self):
     if self.name:
       return [
-        "struct {",
-        *(indent + l for f in self.fields for l in f.declaration()),
-        f"}} {self.name};"
+          "struct {", *(indent + l for f in self.fields
+                        for l in f.declaration()), f"}} {self.name};"
       ]
     return [l for f in self.fields for l in f.declaration()]
 
@@ -409,6 +422,7 @@ class complex_type(generic_type):
     ret = self.declaration()
     ret[0] = f"typedef {ret[0]}"
     return ret
+
 
 def get_storage(numbits):
   if numbits <= 8:
@@ -420,22 +434,13 @@ def get_storage(numbits):
   else:
     return 64
 
+
 @mc_data_name('bitfield')
 class mc_bitfield(complex_type):
-  def __init__(self, name, parent, type_data, use_compare = False):
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
-    lookup_unsigned = {
-        8: num_u8,
-        16: num_u16,
-        32: num_u32,
-        64: num_u64
-    }
-    lookup_signed = {
-        8: num_i8,
-        16: num_i16,
-        32: num_i32,
-        64: num_i64
-    }
+    lookup_unsigned = {8: num_u8, 16: num_u16, 32: num_u32, 64: num_u64}
+    lookup_signed = {8: num_i8, 16: num_i16, 32: num_i32, 64: num_i64}
     self.fields = []
     self.extra_data = []
     self.field_sizes = {}
@@ -449,8 +454,8 @@ class mc_bitfield(complex_type):
       shift = 0
       for temp in type_data[idx + 1:]:
         shift += temp['size']
-      self.extra_data.append(((1<<field['size'])-1, shift, field['size'],
-          field['signed']))
+      self.extra_data.append(
+          ((1 << field['size']) - 1, shift, field['size'], field['signed']))
       numbits = get_storage(field['size'])
       if field['signed']:
         self.fields.append(lookup_signed[numbits](field['name'], self))
@@ -458,7 +463,7 @@ class mc_bitfield(complex_type):
         self.fields.append(lookup_unsigned[numbits](field['name'], self))
 
     self.storage = lookup_unsigned[total](f"{name}_", self)
-    self.size = total//8
+    self.size = total // 8
 
   def encoder(self):
     ret = [*self.storage.initialization("0")]
@@ -467,8 +472,8 @@ class mc_bitfield(complex_type):
       mask, shift, size, signed = self.extra_data[idx]
       shift_str = f"<<{shift}" if shift else ""
       ret.append(f"{self.storage.name} |= "
-          f"(static_cast<{self.storage.typename}>({name}"
-          f"{field.name})&{mask}){shift_str};")
+                 f"(static_cast<{self.storage.typename}>({name}"
+                 f"{field.name})&{mask}){shift_str};")
     ret.extend(self.storage.encoder())
     return ret
 
@@ -479,18 +484,17 @@ class mc_bitfield(complex_type):
       mask, shift, size, signed = self.extra_data[idx]
       shift_str = f">>{shift}" if shift else ""
       ret.append(f"{name}{field.name} = "
-          f"({self.storage.name}{shift_str})&{mask};")
+                 f"({self.storage.name}{shift_str})&{mask};")
       if signed:
-        ret.extend((
-          f"if({name}{field.name} & (1UL << {size - 1}))",
-          f"{indent}{name}{field.name} -= 1UL << {size};"
-        ))
+        ret.extend((f"if({name}{field.name} & (1UL << {size - 1}))",
+                    f"{indent}{name}{field.name} -= 1UL << {size};"))
     return ret
+
 
 # Whatever you think an MCD "switch" is you're probably wrong
 @mc_data_name('switch')
 class mc_switch(simple_type):
-  def __init__(self, name, parent, type_data, use_compare = False):
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
     self.compareTo = type_data['compareTo']
     # Unions are a sum type that differs based on conditions. They are a true
@@ -519,12 +523,12 @@ class mc_switch(simple_type):
     # Find out if all possible values are the same type, in which case we're
     # not a union. And if all the types are void we're an inverse.
     values = type_data['fields'].values()
-    if(all(map(lambda x : x == 'void', values))):
+    if (all(map(lambda x: x == 'void', values))):
       self.is_inverse = True
       f_type, f_data = extract_type(type_data['default'])
       self.fields.append(mcd_typemap[f_type](name, self, f_data))
     else:
-      values = list(filter(lambda x : x != 'void', values))
+      values = list(filter(lambda x: x != 'void', values))
       self.is_union = not all(x == values[0] for x in values)
 
     # In the case we're not a union, we need to check for sister switches
@@ -534,7 +538,7 @@ class mc_switch(simple_type):
           self.null_switch = True
           self.lead_sister = field.lead_sister if field.null_switch else field
           self.lead_sister.merge(name, type_data['fields'], self.is_inverse,
-              type_data.get('default', None))
+                                 type_data.get('default', None))
           return
 
     self.process_fields(self.name, type_data['fields'])
@@ -544,7 +548,7 @@ class mc_switch(simple_type):
       return []
     return [l for f in self.fields for l in f.declaration()]
 
-  def code_fields(self, ret, fields, encode = True):
+  def code_fields(self, ret, fields, encode=True):
     for field in fields:
       if hasattr(self.parent, 'name') and self.parent.name:
         field.temp_name(f"{self.parent.name}.{field.name}")
@@ -555,19 +559,19 @@ class mc_switch(simple_type):
       field.reset_name()
     return ret
 
-  def inverse(self, comp, encode = True):
+  def inverse(self, comp, encode=True):
     if len(self.field_dict.items()) == 1:
       case, _ = next(iter(self.field_dict.items()))
       ret = [f"if({comp} != {case}) {{"]
     else:
-      return ('// Multi-Condition Inverse Not Yet Implemented',)
+      return ('// Multi-Condition Inverse Not Yet Implemented', )
     self.code_fields(ret, self.fields, encode)
     ret.append("}")
     return ret
 
   # Special case for single condition switches, which are just optionals
   # mascarading as switches
-  def optional(self, comp, encode = True):
+  def optional(self, comp, encode=True):
     case, fields = next(iter(self.field_dict.items()))
     ret = []
     if case == "true":
@@ -582,7 +586,7 @@ class mc_switch(simple_type):
     ret.append("}")
     return ret
 
-  def str_switch(self, comp, encode = True):
+  def str_switch(self, comp, encode=True):
     items = list(self.field_dict.items())
     case, fields = items[0]
     ret = [f"if(!{comp}.compare({case})) {{"]
@@ -593,7 +597,7 @@ class mc_switch(simple_type):
     ret.append("}")
     return ret
 
-  def union_multi(self, comp, encode = True):
+  def union_multi(self, comp, encode=True):
     if len(self.field_dict.items()) == 1:
       return self.optional(comp, encode)
     ret = [f"switch({comp}) {{"]
@@ -611,13 +615,14 @@ class mc_switch(simple_type):
   # ".." and move up the container hierarchy using that. If we hit the packet,
   # we abandon ship and assume the path is absolute.
   def get_compare(self):
-    comp = self.compareTo.replace('../','').replace('..','').replace('/','.')
+    comp = self.compareTo.replace('../', '').replace('..',
+                                                     '').replace('/', '.')
     p = self.parent
     for i in range(self.compareTo.count('..')):
       while not (isinstance(p, complex_type) or isinstance(p, packet)):
         p = p.parent
       if isinstance(p, packet):
-        break;
+        break
       else:
         p = p.parent
     while not (isinstance(p, complex_type) or isinstance(p, packet)):
@@ -667,8 +672,10 @@ class mc_switch(simple_type):
       # and ripe for refactoring.
       has_dupes = []
       for field in self.fields:
-        if len(list(filter(lambda x: x.compare_name == field.compare_name,
-            self.fields))) > 1:
+        if len(
+            list(
+                filter(lambda x: x.compare_name == field.compare_name,
+                       self.fields))) > 1:
           has_dupes.append(field)
       # If we're an anonymous switch don't bother, we'll break container fields
       if has_dupes and name:
@@ -690,8 +697,10 @@ class mc_switch(simple_type):
             same.name = f"{name}_{key}"
 
       if not self.is_str_switch:
-        self.field_dict = {key: self.field_dict[key] for key in
-            sorted(self.field_dict)}
+        self.field_dict = {
+            key: self.field_dict[key]
+            for key in sorted(self.field_dict)
+        }
 
   def merge(self, sis_name, sis_fields, is_inverse, default):
     if is_inverse:
@@ -701,7 +710,7 @@ class mc_switch(simple_type):
 
   def __eq__(self, value):
     if not super().__eq__(value) or len(self.fields) != len(value.fields):
-        return False
+      return False
     return all([i == j for i, j in zip(self.fields, value.fields)])
 
 
@@ -709,7 +718,7 @@ class mc_switch(simple_type):
 # field
 @mc_data_name('array')
 class mc_array(simple_type):
-  def __init__(self, name, parent, type_data, use_compare = False):
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
     f_type, f_data = extract_type(type_data['type'])
     self.field = mcd_typemap[f_type]('', self, f_data)
@@ -753,7 +762,7 @@ class mc_array(simple_type):
       ret.append(f"std::vector<{f_type}> {self.name};")
     return ret
 
-  def fixed(self, encode = True):
+  def fixed(self, encode=True):
     self.field.name = f"el{self.depth}"
     ret = [f"for(auto &el{self.depth} : {self.name}) {{"]
     if encode:
@@ -767,31 +776,28 @@ class mc_array(simple_type):
     self.count.name = f"{self.name}.size()"
     self.field.name = f"el{self.depth}"
     return [
-      *self.count.encoder(),
-      f"for(auto &el{self.depth} : {self.name}) {{",
-      *(indent + l for l in self.field.encoder()),
-      "}"
+        *self.count.encoder(), f"for(auto &el{self.depth} : {self.name}) {{",
+        *(indent + l for l in self.field.encoder()), "}"
     ]
 
   def prefixed_decode(self):
     self.count.name = ''
     self.field.name = f"el{self.depth}"
     return [
-      f"{self.name}.resize({self.count.decoder()});",
-      f"for(auto &el{self.depth} : {self.name}) {{",
-      *(indent + l for l in self.field.decoder()),
-      "}"
+        f"{self.name}.resize({self.count.decoder()});",
+        f"for(auto &el{self.depth} : {self.name}) {{",
+        *(indent + l for l in self.field.decoder()), "}"
     ]
 
   # Identical to switches' compareTo
   def get_foreign(self):
-    comp = self.count.replace('../','').replace('..','').replace('/','.')
+    comp = self.count.replace('../', '').replace('..', '').replace('/', '.')
     p = self.parent
     for i in range(self.count.count('..')):
       while not (isinstance(p, complex_type) or isinstance(p, packet)):
         p = p.parent
       if isinstance(p, packet):
-        break;
+        break
       else:
         p = p.parent
     while not (isinstance(p, complex_type) or isinstance(p, packet)):
@@ -803,18 +809,16 @@ class mc_array(simple_type):
   def foreign_encode(self):
     self.field.name = f"el{self.depth}"
     return [
-      f"for(auto &el{self.depth} : {self.name}) {{",
-      *(indent + l for l in self.field.encoder()),
-      "}"
+        f"for(auto &el{self.depth} : {self.name}) {{",
+        *(indent + l for l in self.field.encoder()), "}"
     ]
 
   def foreign_decode(self):
     self.field.name = f"el{self.depth}"
     return [
-      f"{self.name}.resize({self.get_foreign()});",
-      f"for(auto &el{self.depth} : {self.name}) {{",
-      *(indent + l for l in self.field.decoder()),
-      "}"
+        f"{self.name}.resize({self.get_foreign()});",
+        f"for(auto &el{self.depth} : {self.name}) {{",
+        *(indent + l for l in self.field.decoder()), "}"
     ]
 
   def encoder(self):
@@ -831,12 +835,13 @@ class mc_array(simple_type):
       return self.prefixed_decode()
     return self.foreign_decode()
 
+
 # Not a container_type because containers_types sometimes have trivial storage
 # requirements. Actual containers always have non-trivial storage, which makes
 # them a pure complex type
 @mc_data_name('container')
 class mc_container(complex_type):
-  def __init__(self, name, parent, type_data, use_compare = False):
+  def __init__(self, name, parent, type_data, use_compare=False):
     super().__init__(name, parent, type_data, use_compare)
 
     self.fields = []
@@ -870,7 +875,7 @@ class mc_container(complex_type):
 
   def __eq__(self, value):
     if not super().__eq__(value) or len(self.fields) != len(value.fields):
-        return False
+      return False
     return all([i == j for i, j in zip(self.fields, value.fields)])
 
 
@@ -890,147 +895,117 @@ class packet:
 
   def declaration(self):
     return [
-      f"class {self.class_name} : public Packet {{",
-      f"public:",
-      *(indent + l for f in self.fields for l in f.declaration()),
-      f"{indent}{self.class_name}();",
-      f"{indent}void encode(std::ostream &dest) const;",
-      f"{indent}void decode(std::istream &src);",
-      "};"
+        f"class {self.class_name} : public Packet {{", f"public:",
+        *(indent + l for f in self.fields
+          for l in f.declaration()), f"{indent}{self.class_name}();",
+        f"{indent}void encode(std::ostream &dest) const;",
+        f"{indent}void decode(std::istream &src);", "};"
     ]
 
   def constructor(self):
     return [
-      f"{self.class_name}::{self.class_name}() :",
-      f"{indent*2}Packet({self.state.upper()}, {self.direction.upper()}, "
-          f"{self.packet_id},",
-      f"{indent*2}\"{self.class_name}\") {{}}"
+        f"{self.class_name}::{self.class_name}() :",
+        f"{indent*2}Packet({self.state.upper()}, {self.direction.upper()}, "
+        f"{self.packet_id},", f"{indent*2}\"{self.class_name}\") {{}}"
     ]
 
   def encoder(self):
     return [
-      f"void {self.class_name}::encode(std::ostream &dest) const {{",
-      *(indent + l for f in self.fields for l in f.encoder()),
-      "}"
+        f"void {self.class_name}::encode(std::ostream &dest) const {{",
+        *(indent + l for f in self.fields for l in f.encoder()), "}"
     ]
 
   def decoder(self):
     return [
-      f"void {self.class_name}::decode(std::istream &src) {{",
-      *(indent + l for f in self.fields for l in f.decoder()),
-      "}"
+        f"void {self.class_name}::decode(std::istream &src) {{",
+        *(indent + l for f in self.fields for l in f.decoder()), "}"
     ]
+
 
 mc_states = "handshaking", "status", "login", "play"
 mc_directions = "toClient", "toServer"
 
 warning = (
-  "/*",
-  "  This file was generated by mcd2cpp.py",
-  "  It should not be edited by hand.",
-  "*/",
-  "",
+    "/*",
+    "  This file was generated by mcd2cpp.py",
+    "  It should not be edited by hand.",
+    "*/",
+    "",
 )
 
 import re
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
+
+
 def to_enum(name, direction, state):
-    s1 = first_cap_re.sub(r'\1_\2', name)
-    name = all_cap_re.sub(r'\1_\2', s1).upper()
-    d = "SB" if direction == "toServer" else "CB"
-    st = {"handshaking": "HS", "status": "ST", "login": "LG",
-        "play": "PL"}[state]
-    return f"{d}_{st}_{name}"
+  s1 = first_cap_re.sub(r'\1_\2', name)
+  name = all_cap_re.sub(r'\1_\2', s1).upper()
+  d = "SB" if direction == "toServer" else "CB"
+  st = {
+      "handshaking": "HS",
+      "status": "ST",
+      "login": "LG",
+      "play": "PL"
+  }[state]
+  return f"{d}_{st}_{name}"
+
 
 def to_camel_case(string):
   return string.title().replace('_', '')
+
 
 def extract_infos_from_listing(listing):
   ret = []
   # Why this seemingly random position inside the full listing? Because mcdata
   # hates you.
-  for p_id, p_name in listing['types']['packet'][1][0]['type'][1]['mappings'].items():
+  for p_id, p_name in listing['types']['packet'][1][0]['type'][1][
+      'mappings'].items():
     ret.append((int(p_id, 0), to_camel_case(p_name), f"packet_{p_name}"))
   return ret
+
 
 def run(mcd):
   version = mcd.version['minecraftVersion'].replace('.', '_')
   proto = mcd.protocol
   header_upper = [
-    *warning,
-    f"#ifndef PROTO_{version}_HPP",
-    f"#define PROTO_{version}_HPP",
-    "",
-    "#include <cstdint>",
-    "#include <string>",
-    "#include <vector>",
-    "#include <array>",
-    "#include <optional>",
-    "#include <memory>",
-    "#include <stdexcept>",
-    "#include \"datautils.hpp\"",
-    "#include \"nbt.hpp\"",
-    "",
-    f"#define MC_PROTO_VERSION {mcd.version['version']}",
-    "",
-    "namespace mcd {",
-    "",
-    "enum packet_direction {",
-    "  SERVERBOUND,",
-    "  CLIENTBOUND,",
-    "  DIRECTION_MAX",
-    "};",
-    "",
-    "enum packet_state {",
-    "  HANDSHAKING,",
-    "  STATUS,",
-    "  LOGIN,",
-    "  PLAY,",
-    "  STATE_MAX",
-    "};",
-    ""
+      *warning, f"#ifndef PROTO_{version}_HPP", f"#define PROTO_{version}_HPP",
+      "", "#include <cstdint>", "#include <string>", "#include <vector>",
+      "#include <array>", "#include <optional>", "#include <memory>",
+      "#include <stdexcept>", "#include \"datautils.hpp\"",
+      "#include \"nbt.hpp\"", "",
+      f"#define MC_PROTO_VERSION {mcd.version['version']}", "",
+      "namespace mcd {", "", "enum packet_direction {", "  SERVERBOUND,",
+      "  CLIENTBOUND,", "  DIRECTION_MAX", "};", "", "enum packet_state {",
+      "  HANDSHAKING,", "  STATUS,", "  LOGIN,", "  PLAY,", "  STATE_MAX",
+      "};", ""
   ]
   header_lower = [
-    "extern const char* serverbound_handshaking_cstrings["
+      "extern const char* serverbound_handshaking_cstrings["
       "SERVERBOUND_HANDSHAKING_MAX];",
-    "extern const char* clientbound_status_cstrings[CLIENTBOUND_STATUS_MAX];",
-    "extern const char* serverbound_status_cstrings[SERVERBOUND_STATUS_MAX];",
-    "extern const char* clientbound_login_cstrings[CLIENTBOUND_LOGIN_MAX];",
-    "extern const char* serverbound_login_cstrings[SERVERBOUND_LOGIN_MAX];",
-    "extern const char* clientbound_play_cstrings[CLIENTBOUND_PLAY_MAX];",
-    "extern const char* serverbound_play_cstrings[SERVERBOUND_PLAY_MAX];",
-    "",
-    "extern const char **protocol_cstrings[STATE_MAX][DIRECTION_MAX];",
-    "extern const int protocol_max_ids[STATE_MAX][DIRECTION_MAX];",
-    "",
-    "class Packet {",
-    "public:",
-    "  const packet_state state;",
-    "  const packet_direction direction;",
-    "  const std::int32_t packet_id;",
-    "  const std::string packet_name;",
-    "",
-    "  Packet(packet_state state, packet_direction direction,",
-    "      std::int32_t packet_id, std::string name) : state(state), ",
-    "      direction(direction), packet_id(packet_id), packet_name(name) {}",
-    "  virtual ~Packet() = default;",
-    "  virtual void encode(std::ostream &buf) const = 0;",
-    "  virtual void decode(std::istream &buf) = 0;",
-    "};",
-    "",
-    "std::unique_ptr<Packet> make_packet(packet_state state, "
-    "packet_direction dir,",
-    f"    int packet_id);",
-    ""
+      "extern const char* clientbound_status_cstrings[CLIENTBOUND_STATUS_MAX];",
+      "extern const char* serverbound_status_cstrings[SERVERBOUND_STATUS_MAX];",
+      "extern const char* clientbound_login_cstrings[CLIENTBOUND_LOGIN_MAX];",
+      "extern const char* serverbound_login_cstrings[SERVERBOUND_LOGIN_MAX];",
+      "extern const char* clientbound_play_cstrings[CLIENTBOUND_PLAY_MAX];",
+      "extern const char* serverbound_play_cstrings[SERVERBOUND_PLAY_MAX];",
+      "", "extern const char **protocol_cstrings[STATE_MAX][DIRECTION_MAX];",
+      "extern const int protocol_max_ids[STATE_MAX][DIRECTION_MAX];", "",
+      "class Packet {", "public:", "  const packet_state state;",
+      "  const packet_direction direction;", "  const std::int32_t packet_id;",
+      "  const std::string packet_name;", "",
+      "  Packet(packet_state state, packet_direction direction,",
+      "      std::int32_t packet_id, std::string name) : state(state), ",
+      "      direction(direction), packet_id(packet_id), packet_name(name) {}",
+      "  virtual ~Packet() = default;",
+      "  virtual void encode(std::ostream &buf) const = 0;",
+      "  virtual void decode(std::istream &buf) = 0;", "};", "",
+      "std::unique_ptr<Packet> make_packet(packet_state state, "
+      "packet_direction dir,", f"    int packet_id);", ""
   ]
   impl_upper = [
-    *warning,
-    f"#include \"proto_{version}.hpp\"",
-    "",
-    "namespace mcd {",
-    ""
+      *warning, f"#include \"proto_{version}.hpp\"", "", "namespace mcd {", ""
   ]
   impl_lower = []
   packet_enum = {}
@@ -1066,15 +1041,14 @@ def run(mcd):
       dr = "clientbound" if direction == "toClient" else "serverbound"
       packet_enum[state][direction].append(f"{dr.upper()}_{state.upper()}_MAX")
       header_upper.append(f"enum {dr}_{state}_ids {{")
-      header_upper.extend(f"{indent}{l}," for l in packet_enum[state][direction])
+      header_upper.extend(f"{indent}{l},"
+                          for l in packet_enum[state][direction])
       header_upper[-1] = header_upper[-1][:-1]
       header_upper.extend(("};", ""))
 
   make_packet = [
-    "std::unique_ptr<Packet> make_packet(packet_state state, "
-    "packet_direction dir,",
-    f"    int packet_id) {{",
-    "  switch(state) {"
+      "std::unique_ptr<Packet> make_packet(packet_state state, "
+      "packet_direction dir,", f"    int packet_id) {{", "  switch(state) {"
   ]
 
   for state in mc_states:
@@ -1087,18 +1061,18 @@ def run(mcd):
       for pak in packets[state][direction]:
         make_packet.append(f"{indent*6} case {pak.packet_id}:")
         make_packet.append(f"{indent*7} return "
-            f"std::make_unique<{pak.class_name}>();")
+                           f"std::make_unique<{pak.class_name}>();")
       make_packet.append(f"{indent*6}default:")
       make_packet.append(f"{indent*7}throw std::runtime_error(\"Invalid "
-          "Packet Id\");")
+                         "Packet Id\");")
       make_packet.append(f"{indent*5}}}")
     make_packet.append(f"{indent*4}default:")
     make_packet.append(f"{indent*5}throw std::runtime_error(\"Invalid "
-        "Packet Direction\");")
+                       "Packet Direction\");")
     make_packet.append(f"{indent*3}}}")
   make_packet.append(f"{indent*2}default:")
   make_packet.append(f"{indent*3}throw std::runtime_error(\"Invalid "
-    "Packet State\");")
+                     "Packet State\");")
   make_packet.extend((f"{indent}}}", "}", ""))
 
   for state in mc_states:
@@ -1112,30 +1086,30 @@ def run(mcd):
         impl_upper.extend(("};", ""))
 
   impl_upper += [
-    "const char **protocol_cstrings[STATE_MAX][DIRECTION_MAX] = {",
-    f"{indent}{{serverbound_handshaking_cstrings}},",
-    f"{indent}{{serverbound_status_cstrings, clientbound_status_cstrings}},",
-    f"{indent}{{serverbound_login_cstrings, clientbound_login_cstrings}},",
-    f"{indent}{{serverbound_play_cstrings, clientbound_play_cstrings}}",
-    "};",
-    "",
-    "const int protocol_max_ids[STATE_MAX][DIRECTION_MAX] = {",
-    f"{indent}{{SERVERBOUND_HANDSHAKING_MAX, CLIENTBOUND_HANDSHAKING_MAX}},",
-    f"{indent}{{SERVERBOUND_STATUS_MAX, CLIENTBOUND_STATUS_MAX}},",
-    f"{indent}{{SERVERBOUND_LOGIN_MAX, CLIENTBOUND_LOGIN_MAX}},",
-    f"{indent}{{SERVERBOUND_PLAY_MAX, CLIENTBOUND_PLAY_MAX}}",
-    "};",
-    "",
+      "const char **protocol_cstrings[STATE_MAX][DIRECTION_MAX] = {",
+      f"{indent}{{serverbound_handshaking_cstrings}},",
+      f"{indent}{{serverbound_status_cstrings, clientbound_status_cstrings}},",
+      f"{indent}{{serverbound_login_cstrings, clientbound_login_cstrings}},",
+      f"{indent}{{serverbound_play_cstrings, clientbound_play_cstrings}}",
+      "};",
+      "",
+      "const int protocol_max_ids[STATE_MAX][DIRECTION_MAX] = {",
+      f"{indent}{{SERVERBOUND_HANDSHAKING_MAX, CLIENTBOUND_HANDSHAKING_MAX}},",
+      f"{indent}{{SERVERBOUND_STATUS_MAX, CLIENTBOUND_STATUS_MAX}},",
+      f"{indent}{{SERVERBOUND_LOGIN_MAX, CLIENTBOUND_LOGIN_MAX}},",
+      f"{indent}{{SERVERBOUND_PLAY_MAX, CLIENTBOUND_PLAY_MAX}}",
+      "};",
+      "",
   ]
 
   header = header_upper + header_lower + ["}", "#endif", ""]
   impl = impl_upper + impl_lower + make_packet + ["}", ""]
 
-
   with open(f"proto_{version}.cpp", "w") as f:
     f.write('\n'.join(impl))
   with open(f"proto_{version}.hpp", "w") as f:
     f.write('\n'.join(header))
+
 
 if __name__ == "__main__":
   run("1.16.1")

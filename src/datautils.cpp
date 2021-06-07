@@ -262,10 +262,7 @@ void MCSlot::encode(std::ostream& dest) const {
   if(present) {
     enc_varint(dest, item_id);
     enc_byte(dest, item_count);
-    if(nbt_data)
-      nbt_data.value().encode_full(dest);
-    else
-      enc_byte(dest, nbt::TAG_END);
+    nbt_data.encode(dest);
   }
 }
 
@@ -274,45 +271,44 @@ void MCSlot::decode(std::istream& src) {
   if(present) {
     item_id = dec_varint(src);
     item_count = dec_byte(src);
-    if(dec_byte(src) == nbt::TAG_COMPOUND)
-      nbt_data.emplace(src, nbt::read_string(src));
+    nbt_data.decode(src);
   }
 }
 
 void MCParticle::encode(std::ostream& dest) const {
   switch(type) {
-  case PARTICLE_BLOCK:
-  case PARTICLE_FALLING_DUST:
-    enc_varint(dest, block_state);
-    break;
-  case PARTICLE_DUST:
-    enc_be32(dest, red);
-    enc_be32(dest, green);
-    enc_be32(dest, blue);
-    enc_be32(dest, scale);
-    break;
-  case PARTICLE_ITEM:
-    item.encode(dest);
-    break;
+    case PARTICLE_BLOCK:
+    case PARTICLE_FALLING_DUST:
+      enc_varint(dest, block_state);
+      break;
+    case PARTICLE_DUST:
+      enc_be32(dest, red);
+      enc_be32(dest, green);
+      enc_be32(dest, blue);
+      enc_be32(dest, scale);
+      break;
+    case PARTICLE_ITEM:
+      item.encode(dest);
+      break;
   }
 }
 
 void MCParticle::decode(std::istream& src, particle_type p_type) {
   type = p_type;
   switch(type) {
-  case PARTICLE_BLOCK:
-  case PARTICLE_FALLING_DUST:
-    block_state = dec_varint(src);
-    break;
-  case PARTICLE_DUST:
-    red = dec_be32(src);
-    green = dec_be32(src);
-    blue = dec_be32(src);
-    scale = dec_be32(src);
-    break;
-  case PARTICLE_ITEM:
-    item.decode(src);
-    break;
+    case PARTICLE_BLOCK:
+    case PARTICLE_FALLING_DUST:
+      block_state = dec_varint(src);
+      break;
+    case PARTICLE_DUST:
+      red = dec_be32(src);
+      green = dec_be32(src);
+      blue = dec_be32(src);
+      scale = dec_be32(src);
+      break;
+    case PARTICLE_ITEM:
+      item.decode(src);
+      break;
   }
 }
 
@@ -376,67 +372,68 @@ void MCEntityMetadata::encode(std::ostream& dest) const {
     enc_byte(dest, el.index);
     enc_varint(dest, el.type);
     switch(el.type) {
-    case METATAG_BYTE:
-    case METATAG_BOOLEAN:
-      enc_byte(dest, std::get<std::int8_t>(el.value));
-      break;
-    case METATAG_VARINT:
-    case METATAG_DIRECTION:
-    case METATAG_BLOCKID:
-    case METATAG_POSE:
-      enc_varint(dest, std::get<std::int32_t>(el.value));
-      break;
-    case METATAG_FLOAT:
-      enc_bef32(dest, std::get<float>(el.value));
-      break;
-    case METATAG_STRING:
-    case METATAG_CHAT:
-      enc_string(dest, std::get<std::string>(el.value));
-      break;
-    case METATAG_OPTCHAT: {
-      auto str {std::get<std::optional<std::string>>(el.value)};
-      enc_byte(dest, str.has_value());
-      if(str)
-        enc_string(dest, *str);
-    } break;
-    case METATAG_SLOT:
-      std::get<MCSlot>(el.value).encode(dest);
-      break;
-    case METATAG_ROTATION:
-      for(const auto& el : std::get<std::array<float, 3>>(el.value))
-        enc_bef32(dest, el);
-    case METATAG_POSITION:
-      enc_position(dest, std::get<mc_position>(el.value));
-      break;
-    case METATAG_OPTPOSITION: {
-      auto pos {std::get<std::optional<mc_position>>(el.value)};
-      enc_byte(dest, pos.has_value());
-      if(pos)
-        enc_position(dest, *pos);
-    } break;
-    case METATAG_OPTUUID: {
-      auto uuid {std::get<std::optional<mc_uuid>>(el.value)};
-      enc_byte(dest, uuid.has_value());
-      if(uuid)
-        enc_uuid(dest, *uuid);
-    } break;
-    case METATAG_NBT:
-      std::get<nbt::TagCompound>(el.value).encode_full(dest);
-      break;
-    case METATAG_PARTICLE:
-      enc_varint(dest, std::get<MCParticle>(el.value).type);
-      std::get<MCParticle>(el.value).encode(dest);
-      break;
-    case METATAG_VILLAGERDATA:
-      for(const auto& el : std::get<std::array<std::int32_t, 3>>(el.value))
-        enc_varint(dest, el);
-      break;
-    case METATAG_OPTVARINT: {
-      auto varint {std::get<std::optional<std::int32_t>>(el.value)};
-      enc_byte(dest, varint.has_value());
-      if(varint)
-        enc_varint(dest, *varint);
-    } break;
+      case METATAG_BYTE:
+      case METATAG_BOOLEAN:
+        enc_byte(dest, std::get<std::int8_t>(el.value));
+        break;
+      case METATAG_VARINT:
+      case METATAG_DIRECTION:
+      case METATAG_BLOCKID:
+      case METATAG_POSE:
+        enc_varint(dest, std::get<std::int32_t>(el.value));
+        break;
+      case METATAG_FLOAT:
+        enc_bef32(dest, std::get<float>(el.value));
+        break;
+      case METATAG_STRING:
+      case METATAG_CHAT:
+        enc_string(dest, std::get<std::string>(el.value));
+        break;
+      case METATAG_OPTCHAT: {
+        auto str {std::get<std::optional<std::string>>(el.value)};
+        enc_byte(dest, str.has_value());
+        if(str)
+          enc_string(dest, *str);
+      } break;
+      case METATAG_SLOT:
+        std::get<MCSlot>(el.value).encode(dest);
+        break;
+      case METATAG_ROTATION:
+        for(const auto& el : std::get<std::array<float, 3>>(el.value))
+          enc_bef32(dest, el);
+        break;
+      case METATAG_POSITION:
+        enc_position(dest, std::get<mc_position>(el.value));
+        break;
+      case METATAG_OPTPOSITION: {
+        auto pos {std::get<std::optional<mc_position>>(el.value)};
+        enc_byte(dest, pos.has_value());
+        if(pos)
+          enc_position(dest, *pos);
+      } break;
+      case METATAG_OPTUUID: {
+        auto uuid {std::get<std::optional<mc_uuid>>(el.value)};
+        enc_byte(dest, uuid.has_value());
+        if(uuid)
+          enc_uuid(dest, *uuid);
+      } break;
+      case METATAG_NBT:
+        std::get<nbt::NBT>(el.value).encode(dest);
+        break;
+      case METATAG_PARTICLE:
+        enc_varint(dest, std::get<MCParticle>(el.value).type);
+        std::get<MCParticle>(el.value).encode(dest);
+        break;
+      case METATAG_VILLAGERDATA:
+        for(const auto& el : std::get<std::array<std::int32_t, 3>>(el.value))
+          enc_varint(dest, el);
+        break;
+      case METATAG_OPTVARINT: {
+        auto varint {std::get<std::optional<std::int32_t>>(el.value)};
+        enc_byte(dest, varint.has_value());
+        if(varint)
+          enc_varint(dest, *varint);
+      } break;
     }
   }
   enc_byte(dest, 0xFF);
@@ -450,65 +447,65 @@ void MCEntityMetadata::decode(std::istream& src) {
     tag.index = index;
     tag.type = dec_varint(src);
     switch(tag.type) {
-    case METATAG_BYTE:
-    case METATAG_BOOLEAN:
-      tag.value = dec_byte(src);
-      break;
-    case METATAG_VARINT:
-    case METATAG_DIRECTION:
-    case METATAG_BLOCKID:
-    case METATAG_POSE:
-      // Not sure why this is considered ambiguous, maybe conflict with int8?
-      tag.value.emplace<std::int32_t>(dec_varint(src));
-      break;
-    case METATAG_FLOAT:
-      tag.value = dec_bef32(src);
-      break;
-    case METATAG_STRING:
-    case METATAG_CHAT:
-      tag.value = dec_string(src);
-      break;
-    case METATAG_OPTCHAT:
-      if(auto& str {tag.value.emplace<std::optional<std::string>>()};
-          dec_byte(src))
-        str = dec_string(src);
-      break;
-    case METATAG_SLOT:
-      tag.value.emplace<MCSlot>().decode(src);
-      break;
-    case METATAG_ROTATION:
-      for(auto& el : tag.value.emplace<std::array<float, 3>>())
-        el = dec_bef32(src);
-      break;
-    case METATAG_POSITION:
-      tag.value = dec_position(src);
-      break;
-    case METATAG_OPTPOSITION:
-      if(auto& pos {tag.value.emplace<std::optional<mc_position>>()};
-          dec_byte(src))
-        pos = dec_position(src);
-      break;
-    case METATAG_OPTUUID:
-      if(auto& uuid {tag.value.emplace<std::optional<mc_uuid>>()};
-          dec_byte(src))
-        uuid = dec_uuid(src);
-      break;
-    case METATAG_NBT:
-      tag.value.emplace<nbt::TagCompound>().decode_full(src);
-      break;
-    case METATAG_PARTICLE:
-      tag.value.emplace<MCParticle>().decode(
-          src, static_cast<particle_type>(dec_varint(src)));
-      break;
-    case METATAG_VILLAGERDATA:
-      for(auto& el : tag.value.emplace<std::array<std::int32_t, 3>>())
-        el = dec_varint(src);
-      break;
-    case METATAG_OPTVARINT:
-      if(auto& varint {tag.value.emplace<std::optional<std::int32_t>>()};
-          dec_byte(src))
-        varint = dec_varint(src);
-      break;
+      case METATAG_BYTE:
+      case METATAG_BOOLEAN:
+        tag.value = dec_byte(src);
+        break;
+      case METATAG_VARINT:
+      case METATAG_DIRECTION:
+      case METATAG_BLOCKID:
+      case METATAG_POSE:
+        // Not sure why this is considered ambiguous, maybe conflict with int8?
+        tag.value.emplace<std::int32_t>(dec_varint(src));
+        break;
+      case METATAG_FLOAT:
+        tag.value = dec_bef32(src);
+        break;
+      case METATAG_STRING:
+      case METATAG_CHAT:
+        tag.value = dec_string(src);
+        break;
+      case METATAG_OPTCHAT:
+        if(auto& str {tag.value.emplace<std::optional<std::string>>()};
+            dec_byte(src))
+          str = dec_string(src);
+        break;
+      case METATAG_SLOT:
+        tag.value.emplace<MCSlot>().decode(src);
+        break;
+      case METATAG_ROTATION:
+        for(auto& el : tag.value.emplace<std::array<float, 3>>())
+          el = dec_bef32(src);
+        break;
+      case METATAG_POSITION:
+        tag.value = dec_position(src);
+        break;
+      case METATAG_OPTPOSITION:
+        if(auto& pos {tag.value.emplace<std::optional<mc_position>>()};
+            dec_byte(src))
+          pos = dec_position(src);
+        break;
+      case METATAG_OPTUUID:
+        if(auto& uuid {tag.value.emplace<std::optional<mc_uuid>>()};
+            dec_byte(src))
+          uuid = dec_uuid(src);
+        break;
+      case METATAG_NBT:
+        tag.value.emplace<nbt::NBT>().decode(src);
+        break;
+      case METATAG_PARTICLE:
+        tag.value.emplace<MCParticle>().decode(
+            src, static_cast<particle_type>(dec_varint(src)));
+        break;
+      case METATAG_VILLAGERDATA:
+        for(auto& el : tag.value.emplace<std::array<std::int32_t, 3>>())
+          el = dec_varint(src);
+        break;
+      case METATAG_OPTVARINT:
+        if(auto& varint {tag.value.emplace<std::optional<std::int32_t>>()};
+            dec_byte(src))
+          varint = dec_varint(src);
+        break;
     }
     index = dec_byte(src);
   }

@@ -91,7 +91,7 @@ public:
   std::uint8_t present;
   std::int32_t item_id;
   std::int8_t item_count;
-  std::optional<nbt::TagCompound> nbt_data;
+  nbt::NBT nbt_data;
 
   void encode(std::ostream& dest) const;
   void decode(std::istream& src);
@@ -174,7 +174,7 @@ public:
     // WTF
     std::variant<std::int8_t, std::int32_t, float, std::string,
         std::optional<std::string>, MCSlot, std::array<float, 3>, mc_position,
-        std::optional<mc_position>, std::optional<mc_uuid>, nbt::TagCompound,
+        std::optional<mc_position>, std::optional<mc_uuid>, nbt::NBT,
         MCParticle, std::array<std::int32_t, 3>, std::optional<std::int32_t>>
         value;
   };
