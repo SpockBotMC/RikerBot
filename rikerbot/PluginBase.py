@@ -76,7 +76,7 @@ class PluginBase:
             ev.register_callback(event_name, getattr(self, callback))
           else:
             raise AttributeError(f"{self.__class__.__name__} object has no "
-                                f"attribute '{self.events[event]}'")
+                                f"attribute '{callback}'")
 
 
 # Most C Plugins are used only for dependency resolution, they don't stick
