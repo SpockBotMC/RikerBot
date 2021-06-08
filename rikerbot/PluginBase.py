@@ -13,6 +13,23 @@ def pl_announce(*args):
 
   return inner
 
+def on_events(*events):
+    """ 
+    Register a method for callback when any of the given events are emitted, 
+    by adding an entry in the class' events dict.
+
+    The class the method belongs to must inherit from PluginBase.
+    
+    :param events: string or iterable containing names of events to listen to
+    """
+    if (isinstance(events, str)):
+        events = (events,)
+    def decorator(function):
+        function.subscribe_to = events
+        return function
+
+    return decorator
+
 
 class PluginBase:
   """A base class for cleaner plugin code.
@@ -24,9 +41,22 @@ class PluginBase:
   defaults = {}
   events = {}
 
+  # Used for on_events decorator
+  def __init_subclass__(cls, **kwargs):
+    for method in vars(cls).values():
+      if hasattr(method, "subscribe_to"):
+        for event_name in method.subscribe_to:
+          if event_name not in cls.events:
+            cls.events[event_name] = [method.__name__]
+          else:
+            # Make str to list if not already
+            cls.events[event_name] = [cls.events[event_name]] if isinstance(cls.events[event_name], str) else cls.events[event_name]
+            cls.events[event_name].append(method.__name__)
+
   def __init__(self, ploader, settings):
     # Load the plugin's settings.
     self.settings = get_settings(self.defaults, settings)
+    self.ploader = ploader
 
     # Load all the plugin's dependencies.
     if isinstance(self.requires, str):
@@ -38,12 +68,15 @@ class PluginBase:
     # Setup the plugin's event handlers.
     if self.events:
       ev = ploader.require('Event')
-      for event in self.events.keys():
-        if hasattr(self, self.events[event]):
-          ev.register_callback(event, getattr(self, self.events[event]))
-        else:
-          raise AttributeError(f"{self.__class__.__name__} object has no "
-                               f"attribute '{self.events[event]}'")
+      for event_name, callbacks in self.events.items():
+        if (isinstance(callbacks, str)):
+          callbacks = (callbacks,)
+        for callback in callbacks:
+          if hasattr(self, callback):
+            ev.register_callback(event_name, getattr(self, callback))
+          else:
+            raise AttributeError(f"{self.__class__.__name__} object has no "
+                                f"attribute '{self.events[event]}'")
 
 
 # Most C Plugins are used only for dependency resolution, they don't stick
