@@ -95,10 +95,10 @@ private:
   void body_handler(
       const sys::error_code& ec, std::size_t len, int32_t body_len);
   void encryption_begin_handler(const void* data);
-  void enable_encryption(const void* data);
+  void enable_encryption();
   void enable_compression(const void* data);
   void transition_state(const void* data);
-  void login_success(const void* data);
+  void login_success();
 };
 
 } // namespace rkr

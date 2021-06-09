@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: pacman --noconfirm -Syu
-      - run: pacman --noconfirm -S boost botan python python-pip python-wheel zlib cmake ninja swig
+      - run: pacman --noconfirm -S boost botan python python-pip python-wheel cmake ninja swig
       - run: pip install minecraft-data
       - run: cmake . -G Ninja
       - run: cmake --build . --target rikerbot_all

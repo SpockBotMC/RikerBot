@@ -30,7 +30,7 @@ private:
   ev_id_type init_event;
   ev_id_type kill_event;
 
-  void signal_handler(const sys::error_code& ec, int sig);
+  void signal_handler(const sys::error_code& ec);
 };
 
 } // namespace rkr

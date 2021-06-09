@@ -17,7 +17,7 @@ ExecCore::ExecCore(PluginLoader& ploader, bool ownership)
 void ExecCore::run() {
   boost::asio::signal_set signals(ctx, SIGINT, SIGTERM);
   signals.async_wait(
-      [&](const sys::error_code& ec, int sig) { signal_handler(ec, sig); });
+      [&](const sys::error_code& ec, int) { signal_handler(ec); });
 
   ev->emit(init_event);
   ctx.run();
@@ -33,7 +33,7 @@ net::io_context& ExecCore::get_ctx() {
   return ctx;
 }
 
-void ExecCore::signal_handler(const sys::error_code& ec, int sig) {
+void ExecCore::signal_handler(const sys::error_code& ec) {
   if(!ec) {
     BOOST_LOG_TRIVIAL(debug) << "Signal called, stopping";
     ctx.stop();
