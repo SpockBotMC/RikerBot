@@ -4,14 +4,12 @@ on: [push, pull_request]
 
 jobs:
   linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
     steps:
-      - name: Clone
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - run: pacman --noconfirm -Syu
+      - run: pacman --noconfirm -S boost botan python python-pip python-wheel zlib cmake ninja swig
       - run: pip install minecraft-data
-      - run: sudo apt-get install ninja-build libboost1.71-all-dev libbotan-2-dev
       - run: cmake . -G Ninja
-        env:
-          CC: gcc-11
-          CXX: g++-11
       - run: cmake --build . --target rikerbot_all
