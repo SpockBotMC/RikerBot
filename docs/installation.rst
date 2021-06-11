@@ -9,7 +9,7 @@ First, ensure you have all the build requirements available to build RikerBot.
 
 Build Requirements:
 
-* C++20 compiler (Only GCC 10.1+ as of writing, Clang 12 trunk works too)
+* C++20 compiler (Only GCC 11.1+ as of writing, Clang 12 trunk works too)
 * CPython  >= 3.5
 * SWIG_    >= 4.0
 * CMake_   >= 3.18
