@@ -24,8 +24,8 @@ from .plugins.AuthPlugin import AuthPlugin
 from .plugins.KeepAlive import KeepAlivePlugin
 
 from .DependencySolver import solve_dependencies
-from .PluginBase import PluginBase, pl_announce
-from .PluginLoader import PluginLoader, make_PluginLoader, delete_PluginLoader, on_events
+from .PluginBase import PluginBase, pl_announce, on_events
+from .PluginLoader import PluginLoader, make_PluginLoader, delete_PluginLoader
 
 default_plugins = [
     ('start', StartPlugin),
