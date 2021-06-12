@@ -4,7 +4,6 @@ import os
 import pathlib
 import shutil
 
-suffix = '.pyd' if os.name == 'nt' else '.so'
 build_tool = 'Ninja' if shutil.which('ninja') else 'Unix Makefiles'
 build_type = 'Release'
 

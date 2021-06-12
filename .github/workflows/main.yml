@@ -7,9 +7,17 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:base-devel
     steps:
-      - uses: actions/checkout@v2
-      - run: pacman --noconfirm -Syu
-      - run: pacman --noconfirm -S boost botan python python-pip python-wheel cmake ninja swig
-      - run: pip install minecraft-data
-      - run: cmake . -G Ninja
-      - run: cmake --build . --target rikerbot_all
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          pacman --noconfirm -Syu
+          pacman --noconfirm -S boost botan python python-pip python-wheel cmake ninja swig
+          pip install minecraft-data
+
+      - name: Configure
+        run: cmake . -G Ninja
+
+      - name: Build
+        run: cmake --build . --target rikerbot_all --config Release

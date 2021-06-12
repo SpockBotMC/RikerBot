@@ -1,3 +1,4 @@
+
 #ifndef NBT_HPP
 #define NBT_HPP
 
@@ -66,7 +67,12 @@ void print_compound(
 
 struct TagList {
   TagList() = default;
-  TagList(const auto& base) : base {base} {};
+  template <typename T> TagList(const std::vector<T>& base) : base {base} {}
+  template <typename T> TagList(std::initializer_list<T> lst)
+      : base {std::in_place_type<std::vector<T>>, lst} {}
+  TagList(std::initializer_list<const char*> lst)
+      : base {std::in_place_type<std::vector<TagString>>, lst.begin(),
+            lst.end()} {}
 
   std::variant<std::vector<TagEnd>, std::vector<TagByte>,
       std::vector<TagShort>, std::vector<TagInt>, std::vector<TagLong>,
@@ -79,12 +85,7 @@ struct TagList {
     return base.index();
   }
 
-  TagList& operator=(const TagList& other) {
-    base = other.base;
-    return *this;
-  }
-
-  TagList& operator=(const auto& other) {
+  template <typename T> TagList& operator=(const std::vector<T>& other) {
     base = other;
     return *this;
   }
@@ -115,9 +116,19 @@ struct TagCompound {
   Tag& operator[](const std::string& key) {
     return base[key];
   }
+  Tag& operator[](const char* key) {
+    return base[key];
+  }
 
   Tag& at(const std::string& key) {
     return base.at(key);
+  }
+  const Tag& at(const std::string& key) const {
+    return base.at(key);
+  }
+
+  template <typename T> T& at(const std::string& key) {
+    return std::get<T>(base.at(key));
   }
 
 private:
@@ -127,30 +138,39 @@ private:
   }
 };
 
-struct NBT {
+struct NBT : public TagCompound {
   NBT() = default;
   NBT(std::istream& buf) {
     decode(buf);
   };
-  NBT(const TagCompound& tag) : tag {tag} {}
+  NBT(std::istream&& buf) {
+    decode(buf);
+  }
+  NBT(const TagCompound& tag) : TagCompound {tag} {}
   NBT(const std::string& name) : name {name} {}
   NBT(const std::string& name, const TagCompound& tag)
-      : name {name}, tag {tag} {}
+      : TagCompound {tag}, name {name} {}
 
   std::optional<std::string> name;
-  TagCompound tag;
 
   void decode(std::istream& buf);
+  void decode(std::istream&& buf) {
+    decode(buf);
+  }
 
   void encode(std::ostream& buf) const;
+  void encode(std::ostream&& buf) const {
+    encode(buf);
+  }
 
   operator bool() const {
-    return !name && tag.base.empty();
+    return !name && base.empty();
   }
 
 private:
   friend std::ostream& operator<<(std::ostream& os, const NBT& val) {
-    os << "\"" << (val.name ? *val.name : "") << "\"\n" << val.tag;
+    os << "\"" << (val.name ? *val.name : "") << "\"\n";
+    detail::print_compound(os, "", val);
     return os;
   }
 };
@@ -223,7 +243,7 @@ inline TagString decode_string(std::istream& buf) {
 }
 
 inline void encode_string(std::ostream& buf, const TagString& str) {
-  encode<TagShort>(buf, str.size());
+  encode<TagShort>(buf, static_cast<TagShort>(str.size()));
   buf.write(str.data(), str.size());
 }
 
@@ -299,9 +319,11 @@ inline TagList decode_list(std::istream& buf) {
 }
 
 inline void encode_list(std::ostream& buf, const TagList& list) {
+  /*
   if(list.base.valueless_by_exception())
     throw std::runtime_error {"invalid TagList"};
-  encode<TagByte>(buf, list.index());
+  */
+  encode<TagByte>(buf, static_cast<TagByte>(list.index()));
   switch(list.index()) {
     case TAG_END:
       encode<TagInt>(buf, 0);
@@ -310,7 +332,7 @@ inline void encode_list(std::ostream& buf, const TagList& list) {
 #define X(enum, type)                                                         \
   case enum: {                                                                \
     auto& vec {get_list<type>(list)};                                         \
-    encode<TagInt>(buf, vec.size());                                          \
+    encode<TagInt>(buf, static_cast<TagInt>(vec.size()));                     \
     for(const auto val : vec)                                                 \
       encode<type>(buf, val);                                                 \
   } break;
@@ -320,7 +342,7 @@ inline void encode_list(std::ostream& buf, const TagList& list) {
 #define X(enum, type, base_type)                                              \
   case enum: {                                                                \
     auto& vec {get_list<type>(list)};                                         \
-    encode<TagInt>(buf, vec.size());                                          \
+    encode<TagInt>(buf, static_cast<TagInt>(vec.size()));                     \
     for(const auto& val : vec)                                                \
       encode_array<base_type>(buf, val);                                      \
   } break;
@@ -330,6 +352,7 @@ inline void encode_list(std::ostream& buf, const TagList& list) {
 #define X(enum, type, ext)                                                    \
   case enum: {                                                                \
     auto& vec {get_list<type>(list)};                                         \
+    encode<TagInt>(buf, static_cast<TagInt>(vec.size()));                     \
     for(const auto& val : vec)                                                \
       encode##ext(buf, val);                                                  \
   } break;
@@ -340,8 +363,10 @@ inline void encode_list(std::ostream& buf, const TagList& list) {
 
 inline void print_list(
     std::ostream& os, const std::string& indent, const TagList& list) {
+  /*
   if(list.base.valueless_by_exception())
     throw std::runtime_error {"invalid TagList"};
+  */
 
   os << "<TagList of ";
   std::string next_indent {indent + indent_step};
@@ -453,7 +478,7 @@ inline TagCompound decode_compound(std::istream& buf) {
 
 inline void encode_compound(std::ostream& buf, const TagCompound& map) {
   for(const auto& [key, tag] : map.base) {
-    encode<TagByte>(buf, tag.index());
+    encode<TagByte>(buf, static_cast<TagByte>(tag.index()));
     encode_string(buf, key);
 
     switch(tag.index()) {
@@ -477,6 +502,7 @@ inline void encode_compound(std::ostream& buf, const TagCompound& map) {
     break;
       ALL_OTHERS(X)
 #undef X
+
       default:
         throw std::runtime_error {"invalid tag type"};
     }
@@ -539,17 +565,18 @@ inline void NBT::decode(std::istream& buf) {
   TagByte type {nbt::detail::decode<TagByte>(buf)};
   if(type == TAG_COMPOUND) {
     name = detail::decode_string(buf);
-    tag = detail::decode_compound(buf);
+    base = detail::decode_compound(buf).base;
   } else if(type != TAG_END)
     throw std::runtime_error {"invalid tag type"};
 }
 
 inline void NBT::encode(std::ostream& buf) const {
-  if(!name && tag.base.empty())
+  if(!name && base.empty())
     detail::encode<TagByte>(buf, TAG_END);
   else {
     detail::encode<TagByte>(buf, TAG_COMPOUND);
     detail::encode_string(buf, name ? *name : "");
+    detail::encode_compound(buf, *this);
   }
 }
 
