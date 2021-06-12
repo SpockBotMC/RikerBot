@@ -7,5 +7,6 @@
 
 %include <stdint.i>
 %include <std_string.i>
-%include "plugin_base.hpp"
+
+%warnfilter(401) EventCore;
 %include "event_core.hpp"

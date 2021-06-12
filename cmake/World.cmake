@@ -7,7 +7,7 @@ set_target_properties(WorldLib PROPERTIES PREFIX ""
 target_compile_features(WorldLib PRIVATE cxx_std_20)
 target_compile_options(WorldLib PRIVATE ${OPTIONS})
 target_include_directories(WorldLib PRIVATE ${INCLUDES})
-target_link_libraries(WorldLib PUBLIC ProtoLib PluginLoaderLib EventLib)
+target_link_libraries(WorldLib PRIVATE ProtoLib EventLib)
 
 set_property(SOURCE swig/WorldCore.i PROPERTY CPLUSPLUS ON)
 swig_add_library(WorldCore

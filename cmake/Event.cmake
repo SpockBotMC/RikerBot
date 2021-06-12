@@ -7,7 +7,7 @@ set_target_properties(EventLib PROPERTIES PREFIX ""
 target_compile_features(EventLib PRIVATE cxx_std_20)
 target_compile_options(EventLib PRIVATE ${OPTIONS})
 target_include_directories(EventLib PRIVATE ${INCLUDES})
-target_link_libraries(EventLib PUBLIC PluginLoaderLib)
+target_link_libraries(EventLib PRIVATE PluginLoaderLib)
 add_dependencies(EventLib swig_runtime)
 
 # Module

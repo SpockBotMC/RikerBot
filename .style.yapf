@@ -79,7 +79,7 @@ blank_line_before_nested_class_or_def=False
 #        'key1': 'value1',
 #        'key2': 'value2',
 #    })
-coalesce_brackets=False
+coalesce_brackets=True
 
 # The column limit.
 column_limit=79
@@ -177,7 +177,7 @@ indent_dictionary_value=False
 indent_width=2
 
 # Join short lines into one line. E.g., single line 'if' statements.
-join_multiple_lines=True
+join_multiple_lines=False
 
 # Do not include spaces around selected binary operators. For example:
 #

@@ -1,5 +1,5 @@
 # Library
-add_library(PluginLoaderLib SHARED src/plugin_loader.cpp src/plugin_base.cpp)
+add_library(PluginLoaderLib SHARED src/plugin_loader.cpp)
 set_target_properties(PluginLoaderLib PROPERTIES PREFIX ""
     LIBRARY_OUTPUT_NAME libPluginLoader
     LIBRARY_OUTPUT_DIRECTORY ${RKR_PACKAGE_ROOT}/lib

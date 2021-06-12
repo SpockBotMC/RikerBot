@@ -7,8 +7,7 @@ set_target_properties(ExecLib PROPERTIES PREFIX ""
 target_compile_features(ExecLib PRIVATE cxx_std_20)
 target_compile_options(ExecLib PRIVATE ${OPTIONS})
 target_include_directories(ExecLib PRIVATE ${INCLUDES})
-target_link_libraries(ExecLib PUBLIC ${Boost_LOG_LIBRARY} PluginLoaderLib
-    EventLib)
+target_link_libraries(ExecLib PRIVATE ${Boost_LOG_LIBRARY} EventLib)
 add_dependencies(ExecLib swig_runtime)
 
 # Module

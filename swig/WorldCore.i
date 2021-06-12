@@ -27,5 +27,5 @@ struct BlockCoord {
 %template(PosArray) std::array<std::int32_t, 3>;
 %template(PosArrayVector) std::vector<std::array<std::int32_t, 3>>;
 
-%include "plugin_base.hpp"
+%warnfilter(401, 509) WorldCore;
 %include "world_core.hpp"

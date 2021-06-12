@@ -7,8 +7,8 @@ set_target_properties(IOLib PROPERTIES PREFIX ""
 target_compile_features(IOLib PRIVATE cxx_std_20)
 target_compile_options(IOLib PRIVATE ${OPTIONS})
 target_include_directories(IOLib PRIVATE ${INCLUDES})
-target_link_libraries(IOLib PUBLIC ${Boost_LOG_LIBRARY} ${LIBBOTAN} ProtoLib
-    PluginLoaderLib EventLib)
+target_link_libraries(IOLib PRIVATE ${Boost_LOG_LIBRARY} ${LIBBOTAN} ProtoLib
+    EventLib)
 
 # Module
 set_property(SOURCE swig/IOCore.i PROPERTY CPLUSPLUS ON)

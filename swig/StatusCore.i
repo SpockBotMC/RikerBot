@@ -8,5 +8,5 @@
 %include <stdint.i>
 %include <std_string.i>
 
-%include "plugin_base.hpp"
+%warnfilter(401) StatusCore;
 %include "status_core.hpp"

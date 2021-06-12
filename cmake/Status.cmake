@@ -12,5 +12,5 @@ set_target_properties(StatusCore PROPERTIES OUTPUT_NAME CStatusCore
 target_compile_features(StatusCore PRIVATE cxx_std_20)
 target_compile_options(StatusCore PRIVATE ${OPTIONS})
 target_include_directories(StatusCore PRIVATE ${INCLUDES})
-target_link_libraries(StatusCore PluginLoaderLib IOLib EventLib)
+target_link_libraries(StatusCore IOLib EventLib)
 list(APPEND RIKER_DEPENDS StatusCore)

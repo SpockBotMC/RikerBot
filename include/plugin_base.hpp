@@ -6,10 +6,11 @@
 
 namespace rkr {
 
-class PluginBase {
-public:
+struct PluginBase {
   const std::optional<std::string> type_query;
-  PluginBase(std::string type_query = "");
+  PluginBase() = default;
+  PluginBase(std::string type_query)
+      : type_query {std::in_place, type_query} {}
 };
 
 } // namespace rkr
