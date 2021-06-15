@@ -17,7 +17,7 @@ include(UseSWIG)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
 set(INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${Python3_INCLUDE_DIRS} ${BOTAN} include)
-set(OPTIONS -Wall -Wextra -Wpedantic -DBOOST_ASIO_DISABLE_CONCEPTS)
+set(OPTIONS -Wall -Wextra -Wpedantic)
 
 set(RIKER_DEPENDS "")
 
@@ -84,5 +84,7 @@ include(cmake/Logger.cmake)
 include(cmake/World.cmake)
 
 include(cmake/Status.cmake)
+
+include(cmake/Timer.cmake)
 
 add_custom_target(rikerbot_all DEPENDS ${RIKER_DEPENDS})

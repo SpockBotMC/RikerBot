@@ -25,4 +25,5 @@ CLogger.py
 CWorldCore.py
 CStatusCore.py
 CExecCore.py
+CTimerCore.py
 Proto*.py
