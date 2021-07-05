@@ -7,6 +7,7 @@ set_target_properties(PluginLoaderLib PROPERTIES PREFIX ""
 target_compile_features(PluginLoaderLib PRIVATE cxx_std_20)
 target_compile_options(PluginLoaderLib PRIVATE ${OPTIONS})
 target_include_directories(PluginLoaderLib PRIVATE ${INCLUDES})
+target_link_libraries(PluginLoaderLib PRIVATE Python::Module)
 add_dependencies(PluginLoaderLib swig_runtime)
 
 # Module
@@ -24,5 +25,5 @@ set_target_properties(PluginLoader PROPERTIES OUTPUT_NAME CPluginLoader
 target_compile_features(PluginLoader PRIVATE cxx_std_20)
 target_compile_options(PluginLoader PRIVATE ${OPTIONS})
 target_include_directories(PluginLoader PRIVATE ${INCLUDES})
-target_link_libraries(PluginLoader PRIVATE PluginLoaderLib)
+target_link_libraries(PluginLoader PRIVATE PluginLoaderLib Python::Module)
 list(APPEND RIKER_DEPENDS PluginLoader)

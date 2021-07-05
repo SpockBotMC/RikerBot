@@ -7,7 +7,7 @@ set_target_properties(EventLib PROPERTIES PREFIX ""
 target_compile_features(EventLib PRIVATE cxx_std_20)
 target_compile_options(EventLib PRIVATE ${OPTIONS})
 target_include_directories(EventLib PRIVATE ${INCLUDES})
-target_link_libraries(EventLib PRIVATE PluginLoaderLib)
+target_link_libraries(EventLib PRIVATE PluginLoaderLib Python::Module)
 add_dependencies(EventLib swig_runtime)
 
 # Module
@@ -25,6 +25,6 @@ set_target_properties(EventCore PROPERTIES OUTPUT_NAME CEventCore
 target_compile_features(EventCore PRIVATE cxx_std_20)
 target_compile_options(EventCore PRIVATE ${OPTIONS})
 target_include_directories(EventCore PRIVATE ${INCLUDES})
-target_link_libraries(EventCore PRIVATE EventLib)
+target_link_libraries(EventCore PRIVATE EventLib Python::Module)
 add_dependencies(EventCore swig_runtime)
 list(APPEND RIKER_DEPENDS EventCore)

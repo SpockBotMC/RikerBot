@@ -7,8 +7,8 @@ set_target_properties(IOLib PROPERTIES PREFIX ""
 target_compile_features(IOLib PRIVATE cxx_std_20)
 target_compile_options(IOLib PRIVATE ${OPTIONS})
 target_include_directories(IOLib PRIVATE ${INCLUDES})
-target_link_libraries(IOLib PRIVATE ${Boost_LOG_LIBRARY} ${LIBBOTAN} ProtoLib
-    EventLib)
+target_link_libraries(IOLib PRIVATE ${Boost_LOG_LIBRARY} ProtoLib
+    EventLib PluginLoaderLib ZLIB::ZLIB Botan2::Botan2)
 
 # Module
 set_property(SOURCE swig/IOCore.i PROPERTY CPLUSPLUS ON)
@@ -24,5 +24,5 @@ set_target_properties(IOCore PROPERTIES OUTPUT_NAME CIOCore
 target_compile_features(IOCore PRIVATE cxx_std_20)
 target_compile_options(IOCore PRIVATE ${OPTIONS})
 target_include_directories(IOCore PRIVATE ${INCLUDES})
-target_link_libraries(IOCore PRIVATE IOLib)
+target_link_libraries(IOCore PRIVATE IOLib Python::Module)
 list(APPEND RIKER_DEPENDS IOCore)

@@ -7,7 +7,7 @@ set_target_properties(WorldLib PROPERTIES PREFIX ""
 target_compile_features(WorldLib PRIVATE cxx_std_20)
 target_compile_options(WorldLib PRIVATE ${OPTIONS})
 target_include_directories(WorldLib PRIVATE ${INCLUDES})
-target_link_libraries(WorldLib PRIVATE ProtoLib EventLib)
+target_link_libraries(WorldLib PRIVATE ProtoLib EventLib PluginLoaderLib)
 
 set_property(SOURCE swig/WorldCore.i PROPERTY CPLUSPLUS ON)
 swig_add_library(WorldCore
@@ -23,6 +23,6 @@ set_target_properties(WorldCore PROPERTIES OUTPUT_NAME CWorldCore
 target_compile_features(WorldCore PRIVATE cxx_std_20)
 target_compile_options(WorldCore PRIVATE ${OPTIONS})
 target_include_directories(WorldCore PRIVATE ${INCLUDES})
-target_link_libraries(WorldCore PRIVATE WorldLib)
+target_link_libraries(WorldCore PRIVATE WorldLib Python::Module)
 add_dependencies(WorldCore swig_runtime)
 list(APPEND RIKER_DEPENDS WorldCore)

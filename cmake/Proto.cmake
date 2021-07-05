@@ -26,5 +26,5 @@ target_compile_features(Proto PRIVATE cxx_std_20)
 target_compile_options(Proto PRIVATE ${OPTIONS})
 target_include_directories(Proto PRIVATE ${INCLUDES}
     ${CMAKE_CURRENT_SOURCE_DIR}/swig)
-target_link_libraries(Proto PRIVATE ProtoLib)
+target_link_libraries(Proto PRIVATE ProtoLib Python::Module)
 list(APPEND RIKER_DEPENDS Proto)

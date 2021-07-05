@@ -21,3 +21,25 @@ jobs:
 
       - name: Build
         run: cmake --build . --target rikerbot_all --config Release
+
+  osx:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          brew update
+          brew install boost ninja
+          brew install --cc=gcc-11 -s botan
+          pip3 install minecraft-data
+
+      - name: Configure
+        env:
+          CC: gcc-11
+          CXX: g++-11
+        run: cmake . -G Ninja
+
+      - name: Build
+        run: cmake --build . --target rikerbot_all --config Release

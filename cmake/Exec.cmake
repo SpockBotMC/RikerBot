@@ -7,7 +7,7 @@ set_target_properties(ExecLib PROPERTIES PREFIX ""
 target_compile_features(ExecLib PRIVATE cxx_std_20)
 target_compile_options(ExecLib PRIVATE ${OPTIONS})
 target_include_directories(ExecLib PRIVATE ${INCLUDES})
-target_link_libraries(ExecLib PRIVATE ${Boost_LOG_LIBRARY} EventLib)
+target_link_libraries(ExecLib PRIVATE ${Boost_LOG_LIBRARY} PluginLoaderLib EventLib)
 add_dependencies(ExecLib swig_runtime)
 
 # Module
@@ -25,5 +25,5 @@ set_target_properties(ExecCore PROPERTIES OUTPUT_NAME CExecCore
 target_compile_features(ExecCore PRIVATE cxx_std_20)
 target_compile_options(ExecCore PRIVATE ${OPTIONS})
 target_include_directories(ExecCore PRIVATE ${INCLUDES})
-target_link_libraries(ExecCore PRIVATE ExecLib)
+target_link_libraries(ExecCore PRIVATE ExecLib Python::Module)
 list(APPEND RIKER_DEPENDS ExecCore)

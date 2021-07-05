@@ -23,5 +23,5 @@ set_target_properties(TimerCore PROPERTIES OUTPUT_NAME CTimerCore
 target_compile_features(TimerCore PRIVATE cxx_std_20)
 target_compile_options(TimerCore PRIVATE ${OPTIONS})
 target_include_directories(TimerCore PRIVATE ${INCLUDES})
-target_link_libraries(TimerCore PRIVATE TimerLib)
+target_link_libraries(TimerCore PRIVATE TimerLib Python::Module)
 list(APPEND RIKER_DEPENDS TimerCore)

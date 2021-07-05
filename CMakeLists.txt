@@ -1,22 +1,22 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.19)
 project(RikerBot CXX)
 
 set(MC_VERSION "1.16.5" CACHE STRING "Minecraft version to target")
 STRING(REGEX REPLACE [\.] _ MC_USCORE ${MC_VERSION})
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
+find_package(Botan2 REQUIRED)
 
-find_path(BOTAN botan/botan.h PATH_SUFFIXES botan-2 REQUIRED)
-find_library(LIBBOTAN NAMES botan botan-2 REQUIRED)
-
+find_package(ZLIB REQUIRED)
 find_package(Boost COMPONENTS log REQUIRED)
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python COMPONENTS Interpreter Development Development.Module REQUIRED)
 
 find_package(SWIG 4.0 REQUIRED)
 include(UseSWIG)
 
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
-set(INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${Python3_INCLUDE_DIRS} ${BOTAN} include)
+set(INCLUDES ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS} ${Python_INCLUDE_DIRS} ${BOTAN2_INCLUDE_DIRS} include)
 set(OPTIONS -Wall -Wextra -Wpedantic)
 
 set(RIKER_DEPENDS "")
@@ -46,7 +46,7 @@ set(MCD2CPP_GEN ${PROTO_GEN_FILES} ${BLOCK_GEN_FILES})
 
 add_custom_command(
   OUTPUT ${MCD2CPP_GEN}
-  COMMAND ${Python3_EXECUTABLE}
+  COMMAND ${Python_EXECUTABLE}
   ARGS ${CMAKE_CURRENT_SOURCE_DIR}/generate.py ${MC_VERSION}
   COMMAND mv
   ARGS MinecraftProtocol.py ${RKR_PROTO_DIR}

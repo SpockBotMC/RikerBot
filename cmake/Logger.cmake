@@ -11,5 +11,5 @@ set_target_properties(Logger PROPERTIES OUTPUT_NAME CLogger
 target_compile_features(Logger PRIVATE cxx_std_17)
 target_compile_options(Logger PRIVATE ${OPTIONS})
 target_include_directories(Logger PRIVATE ${INCLUDES})
-target_link_libraries(Logger ${Boost_LOG_LIBRARY})
+target_link_libraries(Logger ${Boost_LOG_LIBRARY} Python::Module)
 list(APPEND RIKER_DEPENDS Logger)

@@ -48,11 +48,11 @@ IOCore::IOCore(PluginLoader& ploader, net::io_context& ctx, bool ownership)
   ev->register_callback("ClientboundCompress",
       [&](ev_id_type, const void* data) { enable_compression(data); });
 
-  ev->register_callback(
-      "ClientboundSuccess", [&](ev_id_type, const void*) { login_success(); });
+  ev->register_callback("ClientboundSuccess",
+      [&](ev_id_type, const void*) { login_success(); });
 
-  ev->register_callback(
-      "status_spawn", [&](ev_id_type, const void*) { tick(); });
+  ev->register_callback("status_spawn",
+      [&](ev_id_type, const void*) { tick(); });
 
   for(int state_itr = 0; state_itr < mcd::STATE_MAX; state_itr++) {
     for(int dir_itr = 0; dir_itr < mcd::DIRECTION_MAX; dir_itr++) {
@@ -79,21 +79,21 @@ void IOCore::read_packet() {
     // possible for an entire packet to be shorter than that. So we prepare
     // a 5 byte buffer then use read_some to read however many bytes come.
     in_buf = read_buf.prepare(5);
-    sock.async_read_some(
-        in_buf, [&](const sys::error_code& ec, std::size_t len) {
+    sock.async_read_some(in_buf,
+        [&](const sys::error_code& ec, std::size_t len) {
           header_handler(ec, len);
         });
   }
 }
 
-void IOCore::write_packet(
-    const boost::asio::streambuf& header, const boost::asio::streambuf& body) {
+void IOCore::write_packet(const boost::asio::streambuf& header,
+    const boost::asio::streambuf& body) {
   out_bufs.push_back(header.data());
   out_bufs.push_back(body.data());
   if(!ongoing_write) {
     ongoing_write = true;
-    net::async_write(
-        sock, out_bufs, [&](const sys::error_code& ec, std::size_t len) {
+    net::async_write(sock, out_bufs,
+        [&](const sys::error_code& ec, std::size_t len) {
           write_handler(ec, len);
         });
   }
@@ -167,8 +167,8 @@ void IOCore::connect(const std::string& host, const std::string& service) {
       });
 }
 
-void IOCore::connect_handler(
-    const sys::error_code& ec, const ip::tcp::endpoint& ep) {
+void IOCore::connect_handler(const sys::error_code& ec,
+    const ip::tcp::endpoint& ep) {
   if(ec.failed()) {
     BOOST_LOG_TRIVIAL(fatal) << ec.message();
     exit(-1);
@@ -177,8 +177,8 @@ void IOCore::connect_handler(
   compressed = false;
   encrypted = false;
   ConnectData data {ep.address().to_string(), ep.port()};
-  ev->emit(
-      connect_event, static_cast<const void*>(&data), "rkr::ConnectData *");
+  ev->emit(connect_event, static_cast<const void*>(&data),
+      "rkr::ConnectData *");
   read_packet();
 }
 
@@ -195,8 +195,8 @@ void IOCore::write_handler(const sys::error_code& ec, std::size_t len) {
   }
 
   if(!out_bufs.empty())
-    net::async_write(
-        sock, out_bufs, [&](const sys::error_code& ec, std::size_t len) {
+    net::async_write(sock, out_bufs,
+        [&](const sys::error_code& ec, std::size_t len) {
           write_handler(ec, len);
         });
   else
@@ -212,8 +212,8 @@ void IOCore::read_header() {
     exit(-1);
   } else if(varnum == mcd::VARNUM_OVERRUN) {
     in_buf = read_buf.prepare(5 - read_buf.size());
-    sock.async_read_some(
-        in_buf, [&](const sys::error_code& ec, std::size_t len) {
+    sock.async_read_some(in_buf,
+        [&](const sys::error_code& ec, std::size_t len) {
           header_handler(ec, len);
         });
   } else {
@@ -223,8 +223,8 @@ void IOCore::read_header() {
       return;
     }
     in_buf = read_buf.prepare(varint - read_buf.size());
-    net::async_read(
-        sock, in_buf, [&, varint](const sys::error_code& ec, std::size_t len) {
+    net::async_read(sock, in_buf,
+        [&, varint](const sys::error_code& ec, std::size_t len) {
           body_handler(ec, len, varint);
         });
   }
@@ -241,8 +241,8 @@ void IOCore::header_handler(const sys::error_code& ec, std::size_t len) {
   read_header();
 }
 
-void IOCore::body_handler(
-    const sys::error_code& ec, std::size_t len, int32_t body_len) {
+void IOCore::body_handler(const sys::error_code& ec, std::size_t len,
+    int32_t body_len) {
   if(ec.failed()) {
     BOOST_LOG_TRIVIAL(fatal) << ec.message();
     exit(-1);

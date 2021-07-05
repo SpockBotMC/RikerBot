@@ -30,8 +30,8 @@ public:
   TimerCore(rkr::PluginLoader& ploader, net::io_context& ctx,
       bool ownership = false);
 
-  void register_timer(
-      std::function<void()> cb, std::chrono::milliseconds expire);
+  void register_timer(std::function<void()> cb,
+      std::chrono::milliseconds expire);
 
 private:
   net::io_context& ctx;
